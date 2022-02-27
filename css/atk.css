@@ -1,0 +1,41 @@
+.eventinfotext {    
+    font-weight: bold;
+} 
+
+.eventinfoheader {
+    text-decoration: underline;
+} 
+   
+.card-header-title {
+    font-size:1.5rem;
+    font-weight: 500;
+} 
+
+.modal-header-title {
+    font-size:1.5rem;
+    font-weight: 500;
+} 
+
+
+.label-heading {
+    text-decoration: underline;
+}
+
+@media all {
+    .page-break { display: none; }
+    }
+    
+@media print {
+.page-break { display: block; page-break-before: always; }
+}
+
+th a {
+    color:white;
+    text-decoration: underline;
+}
+
+tr .ra {
+    text-align: right;
+}
+
+textarea { height: auto; }
