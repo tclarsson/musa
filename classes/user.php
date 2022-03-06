@@ -5,10 +5,10 @@ A class representing a user.
 - user info
  */
 class User {
-    public $user_id = null;
+    public $id = null;
     private $db = null;
     protected $permissions=null;
-    public $user_data=[];
+    public $data=[];
     public $membership_table=[];
  
     public function __construct($db, $user_id=null) {
@@ -16,7 +16,7 @@ class User {
         $this->db = $db;
         if(empty($user_id)) $this->check_signout();
         else {
-            $this->user_id=$user_id;
+            $this->id=$user_id;
             $this->fetchUser();
         }
     }
@@ -94,9 +94,9 @@ class User {
     public function setAuthCookie($time){
         $expiry_date = date("Y-m-d H:i:s", $time);
         // Insert new token in table
-        $auth_token=$this->insertAuthToken($this->user_id, $expiry_date);
+        $auth_token=$this->insertAuthToken($this->id, $expiry_date);
         // Insert new token in users session
-        setcookie("user_id", $this->user_id, $time);
+        setcookie("user_id", $this->id, $time);
         setcookie("auth_token", $auth_token, $time);
         return $auth_token;
     }
@@ -129,7 +129,7 @@ class User {
     public function isLoggedIn():bool{
         if(empty($_SESSION['user_id'])) $this->check_cookie_session();
         if(!empty($_SESSION['user_id'])) {
-            $this->user_id=$_SESSION['user_id'];
+            $this->id=$_SESSION['user_id'];
             // retrieve user
             $this->fetchUser();
         } 
@@ -140,7 +140,7 @@ class User {
     //-------------------------------------------------------
     public function loginUser($user_id){
         $_SESSION['user_id']=$user_id;
-        $this->user_id=$_SESSION['user_id'];
+        $this->id=$_SESSION['user_id'];
         // update last_login
         $r=$this->updateLastLogin();
     }
@@ -149,7 +149,7 @@ class User {
     //-------------------------------------------------------
     public function logoutUser(){
         unset($_SESSION['user_id']);
-        $this->user_id=null;
+        $this->id=null;
         if(!empty($_SESSION['uri_after_login'])) {
             header("Location:".$_SESSION['uri_after_login']);
             unset($_SESSION['uri_after_login']);
@@ -199,7 +199,7 @@ class User {
 
     private function addPerms($permission) {
         if(!is_array($permission)) $permission=[$permission];
-        $up=json_decode($this->user_data['permissions'],true);
+        $up=json_decode($this->data['permissions'],true);
         if(!is_array($up)) $up=[];
         //print('<pre>');print_r($up);print('</pre>');
         //print_r($up);exit;
@@ -209,7 +209,7 @@ class User {
         //print('<pre>');print_r($up);print('</pre>');
         $this->permissions=$up;    // update current user 
         // update role
-        $key=['role_code' => $this->user_data['role_code']];
+        $key=['role_code' => $this->data['role_code']];
         $this->db->update('musaRoleTypes',['permissions'=>json_encode($up,JSON_UNESCAPED_UNICODE)],$key);
     }
  
@@ -270,7 +270,7 @@ class User {
         // fetch if needed
         $this->fetchUser();
         // if root -register all permissions
-        if($this->user_data['role_code']=='ROOT') {
+        if($this->data['role_code']=='ROOT') {
             $this->addPerms($permission);
             $this->logPagePerms($permission);
         }
@@ -333,15 +333,15 @@ class User {
         $sql="SELECT * 
         FROM musaUsers
         LEFT JOIN musaRoleTypes ON musaRoleTypes.role_code=musaUsers.role_code
-        WHERE musaUsers.user_id=$this->user_id
+        WHERE musaUsers.user_id=$this->id
         ";        
         //pa($sql);
         $a=$this->db->getRecFrmQry($sql);
         if(empty($a)) {
-            $this->user_data=[];
+            $this->data=[];
             $this->permissions=[];
         } else {
-            $this->user_data=$a[0];
+            $this->data=$a[0];
             $this->permissions=json_decode($a[0]['permissions']);
         }
         if(!is_array($this->permissions)) $this->permissions=[$this->permissions];
@@ -361,7 +361,7 @@ class User {
  
     public function getUserData( $refresh = false ) {
         $this->fetchUser($refresh);
-        return $this->user_data;
+        return $this->data;
     }
 
         //-------------------------------------------------
@@ -407,7 +407,7 @@ class User {
     
     public function updateLastLogin()
     {   
-        $sql = "UPDATE musaUsers SET last_login = NOW() WHERE user_id = $this->user_id";        
+        $sql = "UPDATE musaUsers SET last_login = NOW() WHERE user_id = $this->id";        
         $r=$this->db->executeQry($sql);
         return $r;
     }
@@ -737,7 +737,7 @@ SELECT *,musaUsers.expiration_date as m.expiration_date FROM musaUsers,tbAuthTok
                 else {
                     // login ok
                     $_SESSION['user_id']=$r['user_id'];
-                    $this->user_id=$_SESSION['user_id'];
+                    $this->id=$_SESSION['user_id'];
                     // update last_login
                     $r=$this->updateLastLogin();
                     //$this->fetchUser();

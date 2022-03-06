@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS `musaUsers` (
     CONSTRAINT `status_code` FOREIGN KEY (`status_code`) REFERENCES `musaUserStatus` (`status_code`) ON DELETE NO ACTION ON UPDATE CASCADE
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 INSERT musaUsers (name, email, password, role_code) VALUES ('Thomas','thomas@tclarsson.se',".'\'$2y$10$EwlLs6xsjQLwQIFTlTOak.oknzEB/1Ja0VvYgoExDVTcskOHHm1mu\''.",'ROOT');
-INSERT musaUsers (name, email, password, role_code) VALUES ('Erik','erik@google.com',".'\'$2y$10$EwlLs6xsjQLwQIFTlTOak.oknzEB/1Ja0VvYgoExDVTcskOHHm1mu\''.",'ROOT');
+INSERT musaUsers (name, email, password, role_code) VALUES ('Erik',' erblom@gmail.com',".'\'$2y$10$EwlLs6xsjQLwQIFTlTOak.oknzEB/1Ja0VvYgoExDVTcskOHHm1mu\''.",'ROOT');
 INSERT musaUsers (name, email, password, role_code) VALUES ('Testson','test@tclarsson.se',".'\'$2y$10$EwlLs6xsjQLwQIFTlTOak.oknzEB/1Ja0VvYgoExDVTcskOHHm1mu\''.",'USER');
 
 CREATE TABLE IF NOT EXISTS `musaTokens` (
@@ -78,7 +78,7 @@ $a=$db->executeQry($sql);
 
 if(isset($_REQUEST['setpassword'])&&isset($_REQUEST['email'])){
     $rec['user_id']=$user->email2user($_REQUEST['email']);
-    $rec['email']=$_REQUEST['email']
+    $rec['email']=$_REQUEST['email'];
     $rec['password'] = password_hash($_REQUEST['setpassword'], PASSWORD_DEFAULT); //encrypt password
     $sql="INSERT INTO musaUsers SET user_id=$rec[user_id],email='$rec[email]',password='$rec[password]' 
     ON DUPLICATE KEY UPDATE password='$rec[password]',email='$rec[email]'";

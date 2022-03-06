@@ -32,7 +32,6 @@ function fv($name) {
 <html lang="en">
   <head>
     <?php require_once 'header.inc';?>
-    <meta name="google-signin-client_id" content="<?php print(GOOGLE_CLIENT_ID);?>">
     <title>Logga in</title>
 <style>
 .login-form {
@@ -109,7 +108,7 @@ function fv($name) {
                         <span class="fa fa-user"></span>
                     </span>                    
                 </div>
-                <input type="email" class="form-control" name="email" value="<?php print(fv('email'));?>" placeholder="asposson@aspo.se" required="required">
+                <input type="email" class="form-control" name="email" value="<?php print(fv('email'));?>" placeholder="email@email.se" required="required">
                 <div class="invalid-feedback">Ange din emailadress</div>                        
             </div>
         </div>
@@ -140,47 +139,12 @@ function fv($name) {
     <div class="hint-text">Inget konto? <a href="signup.php" class="text-success">Registrera här!</a></div>
     <div class="hint-text">Har du problem att logga in? Skicka ett mail till: <a href="mailto:<?php print(EMAIL_SUPPORT);?>?subject=ATK Login" class="text-success"><?php print(EMAIL_SUPPORT);?></a></div>
 </div>
-<form action="" method="post" id="googleid">
-  <input type="hidden" name="googleidtoken" id="googleidtoken" value="">
-  <input type="hidden" name="remember" id="googleremember" value="">
-</form>
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
 
-<script src="https://apis.google.com/js/platform.js" async defer></script>
-<script type="text/javascript">
-  function onSignIn(googleUser) {
-    var profile = googleUser.getBasicProfile();
-    console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
-    console.log('Name: ' + profile.getName());
-    console.log('Image URL: ' + profile.getImageUrl());
-    console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
-
-    var id_token = googleUser.getAuthResponse().id_token;
-    document.getElementById("googleidtoken").value=id_token;
-    // copy remember to google login
-    //$("#googleremember").prop("checked",$("#remember").prop("checked"));
-    if($("#remember").prop("checked")) {
-      console.log($("#remember").val());
-      $("#googleremember").val($("#remember").val());
-    }
-    console.log('id_token: ' +id_token);
-    signOut();
-    document.getElementById("googleid").submit();
-  }  
-
-  function signOut() {
-    var auth2 = gapi.auth2.getAuthInstance();
-    auth2.signOut().then(function () {
-      console.log('User signed out.');
-    });
-  }
-
-
-</script>
 
   </body>
     <!-- Error messages   -->

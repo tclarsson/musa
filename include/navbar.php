@@ -31,25 +31,24 @@ if(!empty($_SESSION['user_id'])): ?>
       </li>
       <?php endif?>
       <li class="nav-item"><a class="nav-link mr-2" href="<?php print(ROOT_URI);?>#" title="Startsida"><i class="fa fa-home fa-lg"></i></a></li>
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle " href="<?php print(ROOT_URI);?>#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <i class="fa fa-user"></i> 
-            <?php if(!empty($_SESSION['name'])) print($_SESSION['name']);?>
-          </a>
-          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-          <?php if(!empty($user_data['picture'])) 
-            print('<a class="dropdown-item" href="'.ROOT_URI.'member_account.php"><img src="'.$user_data['picture'].'" width="100"  alt=""></a>');
-          ?>
-          
-            <div class="dropdown-item"><strong><?php if(!empty($_SESSION['ROLE'])) print($_SESSION['ROLE']); else print('-');?></strong></div>
-            <div class="dropdown-divider"></div>
-            <a class="dropdown-item" href="<?php print(ROOT_URI);?>member_account.php#saldo"><i class="fas fa-piggy-bank"></i> Saldo</a>
-            <a class="dropdown-item" href="<?php print(ROOT_URI);?>member_account.php"><i class="fa fa-user"></i> Konto</a>
-            <a class="dropdown-item" href="<?php print(ROOT_URI);?>notify_settings.php"><i class="fa fa-cog"></i> Inställningar</a>
-            <div class="dropdown-divider"></div>
-            <a class="dropdown-item" href="<?php print($_SERVER['REQUEST_URI']."?signout");?>"><i class="fas fa-sign-out-alt"></i> Logga ut</a>
-          </div>
-        </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle " href="<?php print(ROOT_URI);?>#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fa fa-user"></i> 
+          <?php if(!empty($user->data['name'])) print($user->data['name']);?>
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+        <?php if(!empty($user->data['picture'])) 
+          print('<a class="dropdown-item" href="'.ROOT_URI.'member_account.php"><img src="'.$user->data['picture'].'" width="100"  alt=""></a>');
+        ?>
+        
+          <div class="dropdown-item"><strong><?php if(!empty($_SESSION['ROLE'])) print($_SESSION['ROLE']); else print('-');?></strong></div>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="<?php print(ROOT_URI);?>member_account.php"><i class="fa fa-user"></i> Konto</a>
+          <a class="dropdown-item" href="<?php print(ROOT_URI);?>notify_settings.php"><i class="fa fa-cog"></i> Inställningar</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="<?php print($_SERVER['REQUEST_URI']."?signout");?>"><i class="fas fa-sign-out-alt"></i> Logga ut</a>
+        </div>
+      </li>
   
       </ul>
       <button class="navbar-toggler ml-2" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
