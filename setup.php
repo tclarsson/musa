@@ -3,9 +3,14 @@
 
 require_once 'environment.php';
 
-// http://swing/musa/admin.php?userdbcreate
+// http://swing/musa/setup.php?userdbcreate
+
+/*
+ALTER TABLE `musaUsers` ADD CONSTRAINT `fk_status_code` FOREIGN KEY (`status_code`) REFERENCES `musaUserStatus`(`status_code`) ON DELETE CASCADE ON UPDATE CASCADE;
+*/
 if(isset($_REQUEST['userdbcreate'])){
     $sql="
+SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS `musaTokens`;
 DROP TABLE IF EXISTS `musaUsers`;
@@ -18,7 +23,7 @@ CREATE TABLE IF NOT EXISTS `musaRoleTypes`
     `role_name`   varchar(45) NOT NULL ,
     `permissions` text NOT NULL ,
 PRIMARY KEY (`role_code`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_swedish_ci;
 INSERT musaRoleTypes (role_code, role_name, permissions) VALUES ('ROOT','Root','root');
 INSERT musaRoleTypes (role_code, role_name, permissions) VALUES ('SUPER','Superuser','super');
 INSERT musaRoleTypes (role_code, role_name, permissions) VALUES ('ADMIN','Administratör','admin');
@@ -30,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `musaUserStatus`
  `status_code` varchar(45) NOT NULL ,
  `status_name` varchar(45) NOT NULL ,
 PRIMARY KEY (`status_code`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_swedish_ci;
 INSERT musaUserStatus (status_code, status_name) VALUES ('INVITED','Inbjuden');
 INSERT musaUserStatus (status_code, status_name) VALUES ('NORMAL','Normal');
 INSERT musaUserStatus (status_code, status_name) VALUES ('DISABLED','Avstängd');
@@ -51,9 +56,9 @@ CREATE TABLE IF NOT EXISTS `musaUsers` (
     KEY `role_code_idx` (`role_code`),
     CONSTRAINT `role_code` FOREIGN KEY (`role_code`) REFERENCES `musaRoleTypes` (`role_code`) ON DELETE NO ACTION ON UPDATE CASCADE,
     CONSTRAINT `status_code` FOREIGN KEY (`status_code`) REFERENCES `musaUserStatus` (`status_code`) ON DELETE NO ACTION ON UPDATE CASCADE
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_swedish_ci;
 INSERT musaUsers (name, email, password, role_code) VALUES ('Thomas','thomas@tclarsson.se',".'\'$2y$10$EwlLs6xsjQLwQIFTlTOak.oknzEB/1Ja0VvYgoExDVTcskOHHm1mu\''.",'ROOT');
-INSERT musaUsers (name, email, password, role_code) VALUES ('Erik',' erblom@gmail.com',".'\'$2y$10$EwlLs6xsjQLwQIFTlTOak.oknzEB/1Ja0VvYgoExDVTcskOHHm1mu\''.",'ROOT');
+INSERT musaUsers (name, email, password, role_code) VALUES ('Erik','erblom@gmail.com',".'\'$2y$10$EwlLs6xsjQLwQIFTlTOak.oknzEB/1Ja0VvYgoExDVTcskOHHm1mu\''.",'ROOT');
 INSERT musaUsers (name, email, password, role_code) VALUES ('Testson','test@tclarsson.se',".'\'$2y$10$EwlLs6xsjQLwQIFTlTOak.oknzEB/1Ja0VvYgoExDVTcskOHHm1mu\''.",'USER');
 
 CREATE TABLE IF NOT EXISTS `musaTokens` (
@@ -65,16 +70,26 @@ CREATE TABLE IF NOT EXISTS `musaTokens` (
     PRIMARY KEY (`token_id`),
     KEY `FK_21` (`user_id`),
     CONSTRAINT `FK_19` FOREIGN KEY (`user_id`) REFERENCES `musaUsers` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_swedish_ci;
   
-          
+SET FOREIGN_KEY_CHECKS = 1;          
 ";
 pa($sql);
 $a=$db->executeQry($sql);
     pa($a);
+    pa($db->getPdo()->errorInfo());
 }
 
-// http://swing/musa/admin.php?setpassword=musa&email=thomas@tclarsson.se
+// https://www.tclarsson.se/musa/setup.php?showtables
+if(isset($_REQUEST['showtables'])){
+    $sql="show tables;
+";
+    pa($sql);
+    $a=$db->getRecFrmQry($sql);
+    pa($a);
+}
+
+// http://swing/musa/setup.php?setpassword=musa&email=thomas@tclarsson.se
 
 if(isset($_REQUEST['setpassword'])&&isset($_REQUEST['email'])){
     $rec['user_id']=$user->email2user($_REQUEST['email']);

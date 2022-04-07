@@ -20,9 +20,9 @@ if(!empty($_SESSION['unread_info'])) $unread_info="<span class='badge badge-pill
 if(!empty($_SESSION['ladder_challenges'])) $ladder_challenges="<span class='badge badge-pill badge-danger'>$_SESSION[ladder_challenges]</span>"; else $ladder_challenges="";
 if(!empty($_SESSION['unread_ladder'])) $unread_ladder="<span class='badge badge-pill badge-info'>$_SESSION[unread_ladder]</span>"; else $unread_ladder="";
 
-if(!empty($_SESSION['user_id'])): ?>
+if($user->isLoggedIn()): ?>
 <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
-<a class="navbar-brand" href="https://www.aspotennisklubb.se/" title="Hemsida"><img src="<?php print(ROOT_URI);?>images/atklogo.webp" width="70" height="50" alt=""></a>
+<a class="navbar-brand" href="https://www.aspotennisklubb.se/" title="Hemsida"><img src="<?php print(ROOT_URI);?>images/logo.png" width="70" height="50" alt=""></a>
     <div class="d-flex flex-row order-2 order-lg-3">
       <ul class="navbar-nav flex-row">
       <?php if($user->can(['manual'],false)): ?>
@@ -40,9 +40,14 @@ if(!empty($_SESSION['user_id'])): ?>
         <?php if(!empty($user->data['picture'])) 
           print('<a class="dropdown-item" href="'.ROOT_URI.'member_account.php"><img src="'.$user->data['picture'].'" width="100"  alt=""></a>');
         ?>
-        
-          <div class="dropdown-item"><strong><?php if(!empty($_SESSION['ROLE'])) print($_SESSION['ROLE']); else print('-');?></strong></div>
-          <div class="dropdown-divider"></div>
+          <?php if(!empty($user->data['name'])) print("
+          <div class='dropdown-item'><strong>".$user->data['name']."</strong></div>
+          <div class='dropdown-divider'></div>
+          ");?> 
+          <?php if(!empty($user->data['role_name'])) print("
+          <div class='dropdown-item'><strong>".$user->data['role_name']."</strong></div>
+          <div class='dropdown-divider'></div>
+          ");?> 
           <a class="dropdown-item" href="<?php print(ROOT_URI);?>member_account.php"><i class="fa fa-user"></i> Konto</a>
           <a class="dropdown-item" href="<?php print(ROOT_URI);?>notify_settings.php"><i class="fa fa-cog"></i> Inställningar</a>
           <div class="dropdown-divider"></div>
@@ -194,7 +199,7 @@ if(!empty($_SESSION['user_id'])): ?>
 // ----------------------------------------------------------------------------------------------------
 ?>
   <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
-<a class="navbar-brand" href="https://www.aspotennisklubb.se/" title="Hemsida"><img src="<?php print(ROOT_URI);?>images/atklogo.webp" width="70" height="50" alt=""></a>
+<a class="navbar-brand" href="https://www.aspotennisklubb.se/" title="Hemsida"><img src="<?php print(ROOT_URI);?>images/logo.png" width="70" height="50" alt=""></a>
     <div class="d-flex flex-row order-2 order-lg-3">
       <ul class="navbar-nav flex-row">
       <li class="nav-item"><a class="nav-link mr-2" href="<?php print($_SERVER['REQUEST_URI']."?signin");?>" title="Logga in"><i class="fas fa-sign-in-alt fa-lg"></i> Logga in </a></li>

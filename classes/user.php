@@ -123,7 +123,7 @@ class User {
     }
 
     //-------------------------------------------------------
-    // check if logged in or log in with cookies
+    // check if a user_id is logged in or log in with cookies
     // -load user data if logged in
     //-------------------------------------------------------
     public function isLoggedIn():bool{
@@ -336,7 +336,11 @@ class User {
         WHERE musaUsers.user_id=$this->id
         ";        
         //pa($sql);
-        $a=$this->db->getRecFrmQry($sql);
+        try {
+            $a=$this->db->getRecFrmQry($sql);
+        } catch(Exception $e) {
+            $a=[];
+        }
         if(empty($a)) {
             $this->data=[];
             $this->permissions=[];

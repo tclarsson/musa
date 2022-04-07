@@ -17,6 +17,8 @@ class Database{
             //print(__FILE__."</br>");
             $this->pdo = new \PDO("mysql:host=$host;port=$port;charset=utf8mb4;dbname=$db",$user,$pass);
             $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            // preserve datatypes INT in queries
+            $this->pdo->setAttribute(\PDO::ATTR_EMULATE_PREPARES, FALSE);
         } catch (\PDOException $e) {
             exit($e->getMessage());
         }
