@@ -324,6 +324,8 @@ class User {
      * User::$permissions property, to allow caching.
      * User::$permissions will be an array with permission names as keys.
      * @return bool true on success, false on failure
+
+
      */
     private function fetchUser($refresh = false) {
         // check if loaded - then return
@@ -333,6 +335,8 @@ class User {
         $sql="SELECT * 
         FROM musaUsers
         LEFT JOIN musaRoleTypes ON musaRoleTypes.role_code=musaUsers.role_code
+        LEFT JOIN musaUserStatus ON musaUserStatus.status_code=musaUsers.status_code
+        LEFT JOIN musaOrgs ON musaOrgs.org_id=musaUsers.org_id
         WHERE musaUsers.user_id=$this->id
         ";        
         //pa($sql);
