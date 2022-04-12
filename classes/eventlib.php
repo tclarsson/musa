@@ -63,7 +63,7 @@ class EventLib {
     //-------------------------------------------------
     // @ return 1 ass array or false
     
-    public function getMemberUnique($whereAnd, $whereOr   =   array(), $whereLike =   array())
+    public function getUserUnique($whereAnd, $whereOr   =   array(), $whereLike =   array())
     {   
         $ma=$this->db->get('tbMembers',  $whereAnd,$whereOr,$whereLike);
         if(count($ma)==1) {

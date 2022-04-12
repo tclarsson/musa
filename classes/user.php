@@ -7,6 +7,7 @@ A class representing a user.
 class User {
     public $id = null;
     private $db = null;
+    private $pdo = null;
     protected $permissions=null;
     public $data=[];
     public $membership_table=[];
@@ -14,6 +15,7 @@ class User {
     public function __construct($db, $user_id=null) {
         // store database class instance
         $this->db = $db;
+        $this->pdo = $db->getPdo();
         if(empty($user_id)) $this->check_signout();
         else {
             $this->id=$user_id;
@@ -188,7 +190,7 @@ class User {
                         // clear cookies
                         //$this->clearAuthCookie();
                         // clear token
-                        $this->deleteAuthTokensById($tok['token_id']);
+                        $this->deleteTokensById($tok['token_id']);
                     }
                 }
             }
@@ -375,7 +377,7 @@ class User {
         //-------------------------------------------------
     // @ return 1 ass array or false
     
-    public function getMemberUnique($whereAnd, $whereOr   =   array(), $whereLike =   array())
+    public function getUserUnique($whereAnd, $whereOr   =   array(), $whereLike =   array())
     {   
         $ma=$this->db->get('musaUsers',  $whereAnd,$whereOr,$whereLike);
         if(count($ma)==1) {
@@ -469,9 +471,10 @@ class User {
         FROM musaUsers
         WHERE musaUsers.email='$email'
         ";
-        $r=$this->db->getColFrmQry($sql)[0];
+        $r=$this->db->getColFrmQry($sql);
+        if(empty($r)) return null;
         //pa($r);
-        return $r;
+        return $r[0];
     }
         
         
@@ -528,7 +531,7 @@ Array
         try{
             $r=$stmt->execute(array_values($data));
             if($r) {
-                $user_id= $this->pdo->lastInsertId(); 
+                $user_id= $this->db->lastInsertId(); 
                 $result=$this->getMemberByValCol($user_id);
                 $result=$result[0];
                 return $result;
@@ -554,14 +557,15 @@ Array
     //-------------------------------------------------
     public function verifyAuthToken($user_id, $token, $remove=false) 
     {
-        $tl=$this->db->get('tbAuthTokens',['user_id'=>$user_id]);
+        $tl=$this->db->get('musaTokens',['user_id'=>$user_id]);
+        print_r($tl);
         foreach ($tl as $key => $tok) {
             // remove expired tokens
             if($tok["expiry_date"]< date("Y-m-d H:i:s")) {
                 // expired 
                 if($remove) {
                     //remove
-                    $this->deleteAuthTokensById($tok['token_id']);
+                    $this->deleteTokensById($tok['token_id']);
                 }
                 continue;
             }
@@ -571,7 +575,7 @@ Array
                 // match!
                 if($remove) {
                     //remove
-                    $this->deleteAuthTokensById($tok['token_id']);
+                    $this->deleteTokensById($tok['token_id']);
                 }
                 return true;
             }
@@ -581,9 +585,9 @@ Array
 
 
 
-    public function getAuthTokensByValCol($val,$col='token_id')
+    public function getTokensByValCol($val,$col='token_id')
     {
-        $stmt = "SELECT * FROM tbAuthTokens WHERE $col = ?;";
+        $stmt = "SELECT * FROM musaTokens WHERE $col = ?;";
         try {
             $stmt = $this->pdo->prepare($stmt);
             $stmt->execute(array($val));
@@ -594,9 +598,9 @@ Array
         }    
     }
 
-    public function deleteAuthTokensById($val,$col='token_id')
+    public function deleteTokensById($val,$col='token_id')
     {
-        $stmt = "DELETE FROM tbAuthTokens WHERE $col = ?;";
+        $stmt = "DELETE FROM musaTokens WHERE $col = ?;";
         try {
             $stmt = $this->pdo->prepare($stmt);
             $stmt->execute(array($val));
@@ -610,9 +614,10 @@ Array
     public function insertAuthToken($user_id,$expiry_date)
     {
         $token=$this->getToken();
-        $sql = "INSERT INTO musaTokens (user_id, token, expiry_date) values ($user_id,'$token','$expiry_date')";  
+        $token_hash=password_hash($token, PASSWORD_DEFAULT); //encrypt token
+        $sql = "INSERT INTO musaTokens (user_id, token, expiry_date) values ($user_id,'$token_hash','$expiry_date')";  
         //$sql = "UPDATE musaUsers SET token='$token',token_expiry_date='$expiry_date' WHERE user_id=$user_id";  
-        pa($sql);
+        //pa($sql);
         $this->db->executeQry($sql);
         //$this->fetchUser(true);
         return $token;
@@ -666,6 +671,7 @@ Array
         }
     }
 
+/*
     //-------------------------------------------------
     //-------------------------------------------------
 
@@ -675,11 +681,8 @@ Array
 
     public function getMemberByEmail($email)
     {
-/*        
-SELECT *,musaUsers.expiration_date as m.expiration_date FROM musaUsers,tbAuthTokens WHERE musaUsers.user_id=tbAuthTokens.user_id AND email = 'thomas@tclarsson.se'        
-*/
 //        $stmt = "SELECT * FROM musaUsers WHERE email = ?;";
-        $stmt = "SELECT *,musaUsers.expiration_date as m_expiration_date,tbAuthTokens.expiration_date as t_expiration_date  FROM musaUsers,tbAuthTokens WHERE musaUsers.user_id=tbAuthTokens.user_id AND email = ?;";
+        $stmt = "SELECT *,musaUsers.expiration_date as m_expiration_date,musaTokens.expiration_date as t_expiration_date  FROM musaUsers,musaTokens WHERE musaUsers.user_id=musaTokens.user_id AND email = ?;";
         try {
             $stmt = $this->pdo->prepare($stmt);
             $stmt->execute(array($email));
@@ -726,7 +729,7 @@ SELECT *,musaUsers.expiration_date as m.expiration_date FROM musaUsers,tbAuthTok
     }
 
 
-
+/*
     function check_login(){
         $errors=[];
         if (empty($_POST['email'])) $errors['email'] = 'Email saknas!';
@@ -778,7 +781,7 @@ SELECT *,musaUsers.expiration_date as m.expiration_date FROM musaUsers,tbAuthTok
         }
         return $errors;
     }
-
+*/
     function check_register(){
         $errors=[];
         if(empty($_POST["acceptconditions"])) $errors['acceptconditions'] = 'Man måste godkänna villkoren!';
@@ -828,8 +831,10 @@ SELECT *,musaUsers.expiration_date as m.expiration_date FROM musaUsers,tbAuthTok
     $_POST['email']
     */
     function password_reset(){
-        if (empty($_POST['email'])) $errors['email'] = 'Email saknas!';
-        else {
+        $errors=[];
+        if (empty($_POST['email'])) {
+            $errors['email'] = 'ERROR: Email saknas!';
+        } else {
             $user_id=$this->email2user($_POST['email']);
             if(!empty($user_id)) {
                 // create temp auth_token
@@ -839,15 +844,14 @@ SELECT *,musaUsers.expiration_date as m.expiration_date FROM musaUsers,tbAuthTok
 
                 // send email
                 sendResetEmail(['email'=>$_POST['email'],'token'=>$token,'expires'=>$expiry_date]);
-                setMessage("Återställningsinformation skickad till ".$_POST['email'],'alert-success');
+                setMessage("Återställningsinformation skickad till ".$_POST['email'],'success');
             } else {
-                $errors['email'] = 'Användare saknas!';                
+                $errors['email'] = 'ERROR: Användare saknas!';                
             }
         }
+        return $errors;
         // go to login page
-        header("Location:signin.php");
-        exit(0);
-
+        //exit(0);
     }
   
 

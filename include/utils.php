@@ -104,8 +104,8 @@ function export_excel($labels,$data,$title='ATK'){
     $objPHPExcel = new PHPExcel();
 
     // Set document properties
-    $objPHPExcel->getProperties()->setCreator("Aspö Tennisklubb")
-							 ->setLastModifiedBy("Aspö Tennisklubb")
+    $objPHPExcel->getProperties()->setCreator(APPLICATION_NAME)
+							 ->setLastModifiedBy(APPLICATION_NAME)
 							 ->setTitle($title);
     $objPHPExcel->getDefaultStyle()
                              ->getNumberFormat()
@@ -161,8 +161,8 @@ function export_excel_multitab($labels,$mdata,$title='ATK'){
     $objPHPExcel = new PHPExcel();
 
     // Set document properties
-    $objPHPExcel->getProperties()->setCreator("Aspö Tennisklubb")
-							 ->setLastModifiedBy("Aspö Tennisklubb")
+    $objPHPExcel->getProperties()->setCreator(APPLICATION_NAME)
+							 ->setLastModifiedBy(APPLICATION_NAME)
 							 ->setTitle($title);
     $objPHPExcel->getDefaultStyle()
                              ->getNumberFormat()

@@ -6,6 +6,7 @@ setlocale(LC_TIME, "sv_SE.UTF-8");
 
 
 // application settings
+const APPLICATION_NAME='Musikarkivet';
 const LINES_PER_PAGE = 20;
 
 //default access when: selfregistered, invited, verified,
@@ -16,7 +17,7 @@ const DEFAULT_ROLETYPE_VERIFIED='MEDLEM';
 // email
 const EMAIL_CONTACT='musa@tclarsson.se';
 const EMAILLIST_NOTIFY_NEW_MEMBERS=['thomas@tclarsson.se'];
-const EMAIL_SUPPORT='support@tclarsson.se';
+const EMAIL_SUPPORT='support@enfast.se';
 
 
 

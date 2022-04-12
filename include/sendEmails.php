@@ -49,7 +49,7 @@ function sendInviteEmail($mess)
 {
     global $mailer;
     if(!isset($mess['name'])) $mess['name']='';
-    $mess['subj']='Aspö Tennisklubb: Inbjudan att registrera konto';
+    $mess['subj']=APPLICATION_NAME.': Inbjudan att registrera konto';
 
     $link=ROOT_URL.'verify_email.php?email=' . $mess['email'].'&token=' . $mess['token'];
     $body = '<!DOCTYPE html>
@@ -57,7 +57,7 @@ function sendInviteEmail($mess)
 
     <head>
       <meta charset="UTF-8">
-      <title>Inbjudan till Aspö Tennisklubb</title>
+      <title>Inbjudan till '.APPLICATION_NAME.'</title>
       <style>
         .wrapper {
           padding: 20px;
@@ -78,12 +78,10 @@ function sendInviteEmail($mess)
       <div class="wrapper">
         <img src="'.ROOT_URL.'images/web-form-header.png"/>      
         <p>Hej '.$mess['name'].',</p>
-        <p>Här kommer en inbjudan till att registrera ett konto i Aspö Tennisklubbs medlemsservice!</p>
-        <p>Du får denna information för att du skall bli ny medlem eller är medlem sedan tidigare</p>
-        <p>Med hjälp av ett konto på vår nya medlemsservice kommer du kunna göra flera användbara (nya) tjänster.<P>
-        <p>Om du vill bli/fortsätta att vara medlem i klubben, klicka på "Registrera konto" för att registrera ett konto!</p>
+        <p>Här kommer en inbjudan från din organisation att registrera ett konto i '.APPLICATION_NAME.'</p>
+        <p>Om du vill registrera ett konto, klicka på "Registrera konto"!</p>
         <p><a class="button" style="color: white" href="'.$link.'">Registrera konto</a></p>
-        <p>MVH</p><p><a class="link" href="'.ROOT_URL.'">Aspö Tennisklubb</a></p>
+        <p>MVH</p><p><a class="link" href="'.ROOT_URL.'">'.APPLICATION_NAME.'</a></p>
       </div>
     </body>
 
@@ -111,7 +109,7 @@ function sendVerificationEmail($mess)
 {
     global $mailer;
     if(!isset($mess['name'])) $mess['name']='';
-    $mess['subj']='Aspö Tennisklubb: Verifiera din email!';
+    $mess['subj']=APPLICATION_NAME.': Verifiera din email!';
 
     //print_r($mess);exit;
     $link=ROOT_URL.'verify_email.php?email=' . $mess['email'].'&token=' . $mess['token'];
@@ -141,10 +139,10 @@ function sendVerificationEmail($mess)
       <div class="wrapper">
         <img src="'.ROOT_URL.'images/web-form-header.png"/>      
         <p>Hej '.$mess['name'].',</p>
-        <p>Tack för att du registrerat dig hos Aspö Tennisklubb!</p>
+        <p>Tack för att du registrerat dig hos '.APPLICATION_NAME.'!</p>
         <p>Klicka på "Verifiera" för att verifiera din email adress:</p>
         <p><a class="button" style="color: white" href="'.$link.'">Verifiera</a></p>
-        <p>MVH</p><p><a class="link" href="'.ROOT_URL.'">Aspö Tennisklubb</a></p>
+        <p>MVH</p><p><a class="link" href="'.ROOT_URL.'">'.APPLICATION_NAME.'</a></p>
       </div>
     </body>
 
@@ -167,13 +165,14 @@ function sendVerificationEmail($mess)
     }
 }
 
+/*
 // send mail to confirm that user is not approved by board
 function sendApprovedEmail($mess)
 {
     global $mailer;
     if(empty($mess['email'])) return false;
     if(!isset($mess['given_name'])) $mess['given_name']='';
-    $mess['subj']='Välkommen till Aspö Tennisklubb!';
+    $mess['subj']='Välkommen till '.APPLICATION_NAME.'!';
 
     //print_r($mess);exit;
     $body = '<!DOCTYPE html>
@@ -202,8 +201,8 @@ function sendApprovedEmail($mess)
       <div class="wrapper">
         <img src="'.ROOT_URL.'images/web-form-header.png"/>      
         <p>Hej '.$mess['given_name'].',</p>
-        <p>Välkommen till Aspö Tennisklubb! Ditt medlemskap är nu godkänt.</p>
-        <p>MVH</p><p><a class="link" href="'.ROOT_URL.'">Aspö Tennisklubb</a></p>
+        <p>Välkommen till '.APPLICATION_NAME.'! Ditt medlemskap är nu godkänt.</p>
+        <p>MVH</p><p><a class="link" href="'.ROOT_URL.'">'.APPLICATION_NAME.'</a></p>
       </div>
     </body>
 
@@ -226,10 +225,12 @@ function sendApprovedEmail($mess)
     }
 }
 
+*/
+
 function sendMaintenanceEmail($mess)
 {
     global $mailer;
-    if(!isset($mess['subj'])) $mess['subj']='Aspö Tennisklubb: Underhållsrapport';
+    if(!isset($mess['subj'])) $mess['subj']=APPLICATION_NAME.': Underhållsrapport';
     if(!isset($mess['mess'])) $mess['mess']='';
     $body = '<!DOCTYPE html>
     <html lang="en">
@@ -256,7 +257,7 @@ function sendMaintenanceEmail($mess)
     <body>
       <div class="wrapper">
         <div>'.$mess['mess'].'</div>
-        <p>MVH</p><p><a class="link" href="'.ROOT_URL.'">Aspö Tennisklubb</a></p>
+        <p>MVH</p><p><a class="link" href="'.ROOT_URL.'">'.APPLICATION_NAME.'</a></p>
         <img src="'.ROOT_URL.'images/web-form-header.png"/>      
       </div>
     </body>
@@ -285,7 +286,7 @@ function sendResetEmail($mess)
 {
     global $mailer;
     if(!isset($mess['name'])) $mess['name']='';
-    $mess['subj']='Aspö Tennisklubb: Återställ ditt lösenord';
+    $mess['subj']=APPLICATION_NAME.': Återställ ditt lösenord';
     
     $link=ROOT_URL.'reset_password.php?email=' . $mess['email'].'&resettoken=' . $mess['token'];
     if(!empty($mess['expires'])) $expires="<p>Denna länk kan användas endast EN GÅNG och fungerar  bara fram till $mess[expires].</p> ";
@@ -321,7 +322,7 @@ function sendResetEmail($mess)
       <p><a class="button" style="color: white" href="'.$link.'">Ändra lösenord</a></p>
       '.$expires.'
       <p>Om du inte bett om att byta ditt lösenord kan du bortse från denna e-post.</p>
-      <p>MVH</p><p><a class="link" href="'.ROOT_URL.'">Aspö Tennisklubb</a></p>
+      <p>MVH</p><p><a class="link" href="'.ROOT_URL.'">'.APPLICATION_NAME.'</a></p>
       </div>
     </body>
 

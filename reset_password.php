@@ -23,16 +23,16 @@ if (isset($_REQUEST['resettoken'])) {
   if (empty($_REQUEST['email'])) {
       $errors['email'] = 'Email saknas!';
   } else {
-    $md=$auth->getMemberUnique(['email'=>$_REQUEST['email']]);
+    $md=$user->getUserUnique(['email'=>$_REQUEST['email']]);
     if(!empty($md)){
       //$errors['resettoken'] = 'TODO:'.__FILE__;
       // check token
-      if($auth->verifyAuthToken($md['user_id'], $_REQUEST['resettoken'],true)) {
+      if($user->verifyAuthToken($md['user_id'], $_REQUEST['resettoken'],true)) {
         // authenticated
         // redirect
         $_SESSION['set_password'] = $md['user_id'];
-        $_SESSION['message'] = "Återställ lösenordet";
-        $_SESSION['type'] = 'alert-success';
+        setMessage("Återställ lösenordet");
+
         header("Location:set_password.php");
         exit(0);
       } else {
@@ -52,6 +52,12 @@ if (isset($_REQUEST['resettoken'])) {
 // ------------------------------------------------------
 if (isset($_POST['sendreset'])) {
   $errors=$user->password_reset();
+  if(empty($errors)) {
+    header("Location:signin.php");
+    exit();
+  }
+  //$errors=[];
+  //setMessage("Användare saknas!",'alert-danger');
 }
 
 
@@ -140,8 +146,10 @@ Länken är tyvärr ogiltig eller utgången. Var vänlig och be om att få byta 
     <div class="form-group">
       <button type="submit" name="sendreset" class="btn btn-success btn-block login-btn"><i class="fa fa-paper-plane"></i> Skicka</button>
     </div>
+    <div class="clearfix">
+          <a href="signin.php" class="float-right text-success">Logga in istället!</a>
+    </div>  
   </form>
-  <div class="hint-text">Inget konto? <a href="signup.php" class="text-success">Registrera här!</a></div>
 </div>
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->

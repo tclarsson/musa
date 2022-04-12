@@ -95,7 +95,8 @@ function fv($name) {
 </head>
 <body>
 <!-- Display messages -->
-<?php //displayMessages($errors);?>
+<?php displayMessages($errors);?>
+
 
 <div class="login-form" >
     <form action="" method="post" class="needs-validation" novalidate>
@@ -136,7 +137,6 @@ function fv($name) {
         </div>  
         
     </form>
-    <div class="hint-text">Inget konto? <a href="signup.php" class="text-success">Registrera här!</a></div>
     <div class="hint-text">Har du problem att logga in? Skicka ett mail till: <a href="mailto:<?php print(EMAIL_SUPPORT);?>?subject=ATK Login" class="text-success"><?php print(EMAIL_SUPPORT);?></a></div>
 </div>
     <!-- Optional JavaScript -->
