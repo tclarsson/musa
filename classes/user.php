@@ -22,6 +22,20 @@ class User {
             $this->fetchUser();
         }
     }
+    //-------------------------------------------------------
+    // helpers
+    //-------------------------------------------------------
+    public function redirect_to_target_uri(){
+        // redirect to target uri
+        if(!empty($_SESSION['uri_after_login'])) {
+            header("Location:".$_SESSION['uri_after_login']);
+            unset($_SESSION['uri_after_login']);
+        } else {    
+            // redirect to default/main page
+            header("Location:".HOME_PAGE);
+        }
+        exit(0);
+    }
 
     //-------------------------------------------------------
     // check signout
@@ -73,20 +87,25 @@ class User {
                             $this->clearAuthCookie();
                         }
                         // redirect to target uri
-                        if(!empty($_SESSION['uri_after_login'])) {
-                            header("Location:".$_SESSION['uri_after_login']);
-                            unset($_SESSION['uri_after_login']);
-                        } else {    
-                            // redirect to default/main page
-                            header("Location:".HOME_PAGE);
-                        }
-                        exit(0);
+                        $this->redirect_to_target_uri();
                     }
                 } 
                 //pa($errors);
                 
             }
             return $errors;
+        }
+    }
+    //-------------------------------------------------------
+    // check if user is logged in , do some updates and direct to homepage
+    //-------------------------------------------------------
+    public function redirect_if_logged_in(){
+        if($this->isLoggedIn()){
+            // authenticated
+            // update last_login
+            $r=$this->updateLastLogin();
+            // redirect to target uri
+            $this->redirect_to_target_uri();
         }
     }
 
@@ -129,20 +148,20 @@ class User {
     // -load user data if logged in
     //-------------------------------------------------------
     public function isLoggedIn():bool{
-        if(empty($_SESSION['user_id'])) $this->check_cookie_session();
-        if(!empty($_SESSION['user_id'])) {
-            $this->id=$_SESSION['user_id'];
+        if(empty($_SESSION['musa_loggedin_user_id'])) $this->check_cookie_session();
+        if(!empty($_SESSION['musa_loggedin_user_id'])) {
+            $this->id=$_SESSION['musa_loggedin_user_id'];
             // retrieve user
             $this->fetchUser();
         } 
-        return(!empty($_SESSION['user_id']));
+        return(!empty($_SESSION['musa_loggedin_user_id']));
     }
     //-------------------------------------------------------
     // log in user
     //-------------------------------------------------------
     public function loginUser($user_id){
-        $_SESSION['user_id']=$user_id;
-        $this->id=$_SESSION['user_id'];
+        $_SESSION['musa_loggedin_user_id']=$user_id;
+        $this->id=$_SESSION['musa_loggedin_user_id'];
         // update last_login
         $r=$this->updateLastLogin();
     }
@@ -150,7 +169,7 @@ class User {
     // log out user
     //-------------------------------------------------------
     public function logoutUser(){
-        unset($_SESSION['user_id']);
+        unset($_SESSION['musa_loggedin_user_id']);
         $this->id=null;
         if(!empty($_SESSION['uri_after_login'])) {
             header("Location:".$_SESSION['uri_after_login']);
@@ -161,14 +180,14 @@ class User {
         //Clear Session
         session_destroy();
         // clear cookies
-        $auth->clearAuthCookie();
+        $this->clearAuthCookie();
         exit(0);
     }
     //-------------------------------------------------------
     // Check if cookie session
     //-------------------------------------------------------
     private function check_cookie_session(){
-        if (empty($_SESSION['user_id'])) {
+        if (empty($_SESSION['musa_loggedin_user_id'])) {
             // Check if COOKIE for authenticated session exists
             if (! empty($_COOKIE["user_id"]) && ! empty($_COOKIE["auth_token"])) {
                 //pa($_COOKIE);exit;
@@ -181,8 +200,7 @@ class User {
                         // Validate token cookie with database
                         if (password_verify($_COOKIE["auth_token"], $tok["token"])) {
                             // login user
-                            $this->loginUser();
-                            $_SESSION['user_id']=$_COOKIE["user_id"];
+                            $this->loginUser($_COOKIE["user_id"]);
                             //setMessage("Inloggad med COOKIE: ".$tok["expiry_date"]);    
                             break;
                         }
@@ -545,7 +563,7 @@ Array
     //-------------------------------------------------
     //     * @return int    number of affected rows
 
-    public function updateMember($user_id,$user)
+    public function updateUser($user_id,$user)
     {
         $allowed=['given_name','family_name','email','email_verified','token','password','password_updated','last_login','mobile','address','birth_year','comment','membership_code','family_id','role_code','level_code','created','picture','google_id','city','zipcode','phone'];
         if(isset($user['sub'])) $user['google_id']=$user['sub'];    // rename field
@@ -558,7 +576,7 @@ Array
     public function verifyAuthToken($user_id, $token, $remove=false) 
     {
         $tl=$this->db->get('musaTokens',['user_id'=>$user_id]);
-        print_r($tl);
+        //print_r($tl);
         foreach ($tl as $key => $tok) {
             // remove expired tokens
             if($tok["expiry_date"]< date("Y-m-d H:i:s")) {
@@ -795,10 +813,10 @@ Array
               // existing user
               $user['password'] = password_hash($_POST['password'], PASSWORD_DEFAULT); //encrypt password
               if(empty($md['role_code'])) $user['role_code']=DEFAULT_ROLETYPE_SELFREG;
-              $r=$auth->updateMember($md['user_id'],$user);
+              $r=$auth->updateUser($md['user_id'],$user);
               if($r!==false) {
                 // updated!
-                $_SESSION['user_id'] = $md['user_id'];
+                $_SESSION['musa_loggedin_user_id'] = $md['user_id'];
                 $_SESSION['message'] = 'Du är inloggad!';
                 $_SESSION['type'] = 'alert-success';
               } else {
@@ -813,7 +831,7 @@ Array
               $md=$auth->insertMember($user);
               if($md!==false) {
                 // inserted!
-                $_SESSION['user_id'] = $md['user_id'];
+                $_SESSION['musa_loggedin_user_id'] = $md['user_id'];
                 $_SESSION['message'] = 'Du är inloggad!';
                 $_SESSION['type'] = 'alert-success';
               } else {

@@ -1,6 +1,5 @@
 <?php 
 require_once 'environment.php';
-require_once 'authentication.php'; 
 require_once 'sendEmails.php';
 // ------------------------------------------------------
 $errors = [];
@@ -23,15 +22,15 @@ if (isset($_POST['setpassword'])) {
 
   if (count($errors) === 0) {
     // update password
-    $user['password'] = password_hash($_POST['password'], PASSWORD_DEFAULT); //hash password
-    $n=$auth->updateMember($_SESSION['set_password'],$user);
+    $rec['password'] = password_hash($_POST['password'], PASSWORD_DEFAULT); //hash password
+    $n=$user->updateUser($_SESSION['set_password'],$rec);
     if($n==1) {
       // updated!
-      $_SESSION['message'] = 'Lösenordet är ändrat!';
-      $_SESSION['type'] = 'alert-success';
+      setMessage('Lösenordet är ändrat!');
       // log in
-      $_SESSION['user_id'] = $_SESSION['set_password'];
+      $user->loginUser($_SESSION['set_password']);
       unset ($_SESSION['set_password']);
+      //unset($_SESSION['uri_after_login']);
     } else {
       $errors['database'] = 'Databasfel: Byte av lösenord misslyckades!';
     }
@@ -39,7 +38,8 @@ if (isset($_POST['setpassword'])) {
 }
 
 // login ok?
-redirect_if_logged_in();
+//unset($_SESSION['uri_after_login']);
+$user->redirect_if_logged_in();
 
 ?>
 

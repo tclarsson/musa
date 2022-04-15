@@ -1,6 +1,6 @@
 <?php
 require_once 'environment.php';
-$user->admit('root');
+$user->admit();
 //$page_nocontainer=true;
 require_once 'header.php';
 pa($user->data);
