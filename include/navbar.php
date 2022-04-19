@@ -89,16 +89,22 @@ if($user->isLoggedIn()): ?>
       System
     </a>
     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+    <a class="dropdown-item" href="<?php print(ROOT_URI);?>orgs_admin.php">Organisationer</a>
       <a class="dropdown-item" href="<?php print(ROOT_URI);?>admins_admin.php">Administratörer</a>
       <div class="dropdown-divider"></div>
       <a class="dropdown-item" href="<?php print(ROOT_URI);?>users_delete.php">Radera användare</a>
       <div class="dropdown-divider"></div>
-      <a class="dropdown-item" href="<?php print(ROOT_URI);?>roletypes_admin.php">Rolltyper</a>
-      <a class="dropdown-item" href="<?php print(ROOT_URI);?>permissiontypes_admin.php">Rättigheter</a>
-      <div class="dropdown-divider"></div>
-      <?php if($user->can('settings')) 
-        print('<a class="dropdown-item" href="'.ROOT_URI.'system_log.php">Log</a>');
+      <?php 
+      if($user->can('settings')) {
+        print('
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item" href="'.ROOT_URI.'roletypes_admin.php">Rolltyper</a>
+        <a class="dropdown-item" href="'.ROOT_URI.'permissiontypes_admin.php">Rättigheter</a>
+        ');
         print('<a class="dropdown-item" href="'.ROOT_URI.'system_settings.php">Inställningar</a>');
+      }
+
+        print('<a class="dropdown-item" href="'.ROOT_URI.'system_log.php">Log</a>');
         print('<a class="dropdown-item" href="https://analytics.google.com/analytics/web/?authuser=0#/report/trafficsources-overview/a177007171/">Google Analytics</a>');
      ?>
       <div class="dropdown-divider"></div>
