@@ -1,21 +1,20 @@
 <?php 
 require_once 'environment.php';
 // ------------------------------------------------------
-$page_title='Organisationer';
+$page_title='Användare';
 $user->admit(['super']);
 // ------------------------------------------------------
 $sql_table="
-FROM musaOrgs
+FROM musaUsers
+LEFT JOIN musaOrgs ON musaOrgs.org_id=musaUsers.org_id
+WHERE musaUsers.org_id=$_REQUEST[org_id]
 ";
 $sql_group="";
 
-//$cols_visible=['org_id'=>'Org ID', 'org_name'=>'Organisationsnamn', 'org_info'=>'Organisationsinfo', 'org_created'=>'Skapad'];
-//$cols=update_columns_info($cols_visible);
-$cols_visible=['org_id', 'org_name', 'org_info', 'org_created'];
-$cols_searchable=['org_name', 'org_info'];
+//$r=$db->getRecFrmQry("SELECT * $sql_table");pa('$cols_visible='.json_encode(array_keys($r[0])).';');exit;
+$cols_visible=["user_id","name","title","email","phone","role","show","email_verified","status_code","role_code","last_login","user_created","org_name"];
+$cols_searchable=["user_id","name","title","email","phone","role","show","email_verified","status_code","role_code"];
 $cols=get_columns_info($cols_visible);
-//print("<pre>");print_r(json_encode($cols,JSON_PRETTY_PRINT));print("</pre>");
-
 
 $order = "org_name";
 // ------------------------------------------------------
@@ -26,6 +25,7 @@ set_search_sort_pagination();
 // ------------------------------------------------------
 // do query with pagination limits for display
 $rl=$db->getRecFrmQry("SELECT * $sql LIMIT $offset, $no_of_records_per_page");
+
 // ------------------------------------------------------
 //setMessage("Draft Org admin");
 
@@ -61,13 +61,12 @@ require_once 'header.php';
       foreach ($rl as $i) {
         print('<tr>');
         foreach ($cols_visible as $col) {
-            //$a='<a href="org_update.php?target_id='. $i['org_id'] .'" title="Redigera Organisation" data-toggle="tooltip"><i class="fa fa-users"></i></a> ';
+            //$a='<a href="user_update.php?target_id='. $i['org_id'] .'" title="Redigera Organisation" data-toggle="tooltip"><i class="fa fa-users"></i></a> ';
             print("<td>".$i[$col]."</td>");
         }
         print('<td>');
-        print('<a href="users_admin.php?org_id='. $i['org_id'] .'" title="Användare" data-toggle="tooltip"><i class="fa fa-users"></i></a> ');
-        print('&nbsp| <a href="org_update.php?edit&target_id='. $i['org_id'] .'" title="Redigera" data-toggle="tooltip"><i class="fa fa-edit"></i></a> ');
-        print('&nbsp| <a href="org_update.php?delete&target_id='. $i['org_id'] .'" data-toggle="tooltip" '.confOp("delete").'</a>');
+        print('<a href="user_update.php?edit&target_id='. $i['user_id'] .'" title="Redigera" data-toggle="tooltip"><i class="fa fa-edit"></i></a> ');
+        print('&nbsp| <a href="user_update.php?delete&target_id='. $i['user_id'] .'" data-toggle="tooltip" '.confOp("delete").'</a>');
         print('</td></tr>');
       }
       print('</tbody></table>');

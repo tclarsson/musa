@@ -2,7 +2,7 @@
     "ib_title": {
         "name": "ib_title",
         "header": "Titel",
-        "required":1,
+        "required": 1,
         "sqltype": "varchar(45)"
     },
     "ib_description": {
@@ -33,25 +33,25 @@
     "ibt_code": {
         "name": "ibt_code",
         "header": "Anslagstyp ID",
-        "required":1,
+        "required": 1,
         "sqltype": "varchar(45)"
     },
     "ibt_name": {
         "name": "ibt_name",
         "header": "Anslagstyp",
-        "required":1,
+        "required": 1,
         "sqltype": "varchar(45)"
     },
     "ibt_sort": {
         "name": "ibt_sort",
         "header": "Sortering",
-        "required":1,
+        "required": 1,
         "sqltype": "int(11)"
     },
     "ibt_access_level": {
         "name": "ibt_access_level",
-        "header": "Accessnivå",
-        "required":1,
+        "header": "Accessniv\u00e5",
+        "required": 1,
         "sqltype": "int(11)"
     },
     "ibt_description": {
@@ -61,7 +61,7 @@
     },
     "age_group": {
         "name": "age_group",
-        "header": "Åldersgrupp",
+        "header": "\u00c5ldersgrupp",
         "type": "s"
     },
     "member_membership": {
@@ -241,7 +241,7 @@
     },
     "user_id": {
         "name": "user_id",
-        "header": "Användar ID",
+        "header": "Anv\u00e4ndar ID",
         "sqltype": "int(11)",
         "visible": true,
         "type": "n"
@@ -505,7 +505,6 @@
         "visible": true,
         "type": "s"
     },
-    
     "email": {
         "name": "email",
         "table": "tbMembers",
@@ -950,14 +949,6 @@
     "transaction_user_id": {
         "name": "transaction_user_id",
         "table": "tbTransactions",
-        "header": "Medlems ID",
-        "sqltype": "int(11)",
-        "visible": true,
-        "type": "n"
-    },
-    "transaction_user_id": {
-        "name": "transaction_user_id",
-        "table": "tbTransactions",
         "header": "Anv\u00e4ndar ID",
         "sqltype": "int(11)",
         "visible": true,
@@ -1122,6 +1113,45 @@
         "name": "ladder_match_count",
         "header": "Spelade Matcher",
         "type": "s"
+    },
+    "org_id": {
+        "name": "org_id",
+        "header": "Org ID",
+        "type": "s"
+    },
+    "org_name": {
+        "name": "org_name",
+        "header": "Organisationsnamn",
+        "type": "s"
+    },
+    "org_info": {
+        "name": "org_info",
+        "header": "Organisationsinfo",
+        "type": "s"
+    },
+    "org_created": {
+        "name": "org_created",
+        "header": "Skapad",
+        "type": "s"
+    },
+    "Org ID": {
+        "name": "Org ID",
+        "header": "Org ID",
+        "type": "s"
+    },
+    "Organisationsnamn": {
+        "name": "Organisationsnamn",
+        "header": "Organisationsnamn",
+        "type": "s"
+    },
+    "Organisationsinfo": {
+        "name": "Organisationsinfo",
+        "header": "Organisationsinfo",
+        "type": "s"
+    },
+    "Skapad": {
+        "name": "Skapad",
+        "header": "Skapad",
+        "type": "s"
     }
-        
 }

@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS `musaOrgs`
     `org_created` timestamp NOT NULL DEFAULT current_timestamp(),
     PRIMARY KEY (`org_id`)
 );
-INSERT musaOrgs (org_id, org_name) VALUES (1,'Administration');
+INSERT musaOrgs (org_id, org_name, org_info) VALUES (1,'MUSA Administration','Organisationen som sköter administrationen av MUSA');
 INSERT musaOrgs (org_id, org_name) VALUES (2,'Testkyrkan');
 
 DROP TABLE IF EXISTS `musaUsers`;

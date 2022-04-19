@@ -1,7 +1,13 @@
 <div id="dynamicModalFrame"></div>
 <hr>
-<?php print('<button onclick="goBack()" class="btn btn-secondary" title="Tillbaka"><i class="fa fa-undo"></i> Tillbaka</button>'); ?>
-</br></br><a href="<?php print(ROOT_URI);?>"><img src="<?php print(ROOT_URI);?>images/web-form-footer.png" width="300"></a>
+<?php 
+print('<button onclick="goBack()" class="btn btn-secondary" title="Tillbaka"><i class="fa fa-undo"></i> Tillbaka</button></br>');
+if(!empty($user->data['org_name'])) print("
+</br><div class='bg-dark text-light'><strong  class='ml-2'>".$user->data['org_name']."</strong></div>
+          ");
+
+?>
+</br><a href="<?php print(ROOT_URI);?>"><img src="<?php print(ROOT_URI);?>images/web-form-footer.png" width="300"></a>
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>

@@ -2,7 +2,7 @@
 if(empty($page_title)) $page_title='Musikarkivet';
 ?>
 <!DOCTYPE html>
-<html lang='en'>
+<html lang='se'>
 <head>
     <title><?php print($page_title);?></title>
     <?php require_once 'header.inc';?>
@@ -14,6 +14,5 @@ if(empty($page_nocontainer)) {
 }
 require_once 'navbar.php';
 require_once 'messages.php';
-setMessage("Testar message");
 displayMessages($errors);
 ?>

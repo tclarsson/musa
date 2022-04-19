@@ -3,19 +3,47 @@
 
 // ------------------------------------------------------
 // get global columns info
-$columns=json_decode(file_get_contents('columns.json',true),true);
-$columns['contact_name']['header']='Kontakt';
+$columns_filename='columns.json';
+$columns=json_decode(file_get_contents($columns_filename,true),true);
 // ------------------------------------------------------
 
-function get_columns_info($keys){
+function get_columns_info($ca){
     global $columns;
-    $keys=array_diff($keys,['token','password']);
+
+    $keys=array_diff(($ca),['token','password']);
     $cols=[];
     foreach($keys as $i) {
-        if(!empty($columns[$i])) $cols[$i]=$columns[$i]; 
-        else $cols[$i]['header']=$i; 
+        if(empty($columns[$i])) {
+            //$columns[$i]=['name'=>$i,'header'=>$i,'type'=>'s']; 
+            $columns[$i]=['header'=>$i,'type'=>'s']; 
+        }
+        $cols[$i]=$columns[$i]; 
     }
     return $cols;
+}
+
+function update_columns_info($ca){
+    global $columns,$columns_filename;
+    $update=false;
+    if(!empty($ca)){
+        $keys=array_diff(array_keys($ca),['token','password']);
+        // add missing keys with default values
+        foreach($keys as $i) {
+            if(empty($columns[$i])) {
+                $columns[$i]=['name'=>$i,'header'=>$i,'type'=>'s']; 
+                if(!empty($ca[$i])) $columns[$i]['header']=$ca[$i];
+                $update=true;
+            }
+        }
+        if($update){
+            // update file
+            //$fn=realpath($columns_filename);
+            $fn=$columns_filename;
+            //var_dump($columns_filename);var_dump($fn);exit();
+            file_put_contents($fn,json_encode($columns,JSON_PRETTY_PRINT));
+        }
+    }
+    return $update;
 }
 
 function arr2table($t){

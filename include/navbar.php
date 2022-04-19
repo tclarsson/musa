@@ -8,6 +8,12 @@ require_once 'utils.php';
 //pa($_SERVER);
 
 if($user->isLoggedIn()): ?>
+  <?php
+  if(!empty($user->data['org_name'])) print("
+<div class='bg-dark text-light'><strong class='ml-2'>".$user->data['org_name']."</strong></div>
+          ");
+          ?>
+
 <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
 <span class="navbar-brand"><img src="<?php print(ROOT_URI);?>images/logo.png" width="70" height="50" alt=""></span>
     <div class="d-flex flex-row order-2 order-lg-3">
@@ -24,17 +30,21 @@ if($user->isLoggedIn()): ?>
           <?php if(!empty($user->data['name'])) print($user->data['name']);?>
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-        <?php if(!empty($user->data['picture'])) 
-          print('<a class="dropdown-item" href="'.ROOT_URI.'member_account.php"><img src="'.$user->data['picture'].'" width="100"  alt=""></a>');
-        ?>
-          <?php if(!empty($user->data['name'])) print("
+        <?php 
+        if(!empty($user->data['picture'])) print('<a class="dropdown-item" href="'.ROOT_URI.'member_account.php"><img src="'.$user->data['picture'].'" width="100"  alt=""></a>');
+        if(!empty($user->data['name'])) print("
           <div class='dropdown-item'><strong>".$user->data['name']."</strong></div>
           <div class='dropdown-divider'></div>
-          ");?> 
-          <?php if(!empty($user->data['role_name'])) print("
+          ");
+        if(!empty($user->data['org_name'])) print("
+          <div class='dropdown-item'><strong>".$user->data['org_name']."</strong></div>
+          <div class='dropdown-divider'></div>
+          ");
+        if(!empty($user->data['role_name'])) print("
           <div class='dropdown-item'><strong>".$user->data['role_name']."</strong></div>
           <div class='dropdown-divider'></div>
-          ");?> 
+          ");
+        ?> 
           <a class="dropdown-item" href="<?php print(ROOT_URI);?>member_account.php"><i class="fa fa-user"></i> Konto</a>
           <a class="dropdown-item" href="<?php print(ROOT_URI);?>notify_settings.php"><i class="fa fa-cog"></i> Inställningar</a>
           <div class="dropdown-divider"></div>
@@ -115,6 +125,8 @@ if($user->isLoggedIn()): ?>
 <?php endif?>
     </ul>
   </div>
+
 </nav>
+</br>
 
 <?php endif?>
