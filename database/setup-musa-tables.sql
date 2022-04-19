@@ -387,5 +387,6 @@ PRIMARY KEY (`theme_id`)
 INSERT musaThemes (theme_name) VALUES ('Sorg');
 INSERT musaThemes (theme_name) VALUES ('Dödsfall');
 INSERT musaThemes (theme_name) VALUES ('Bröllop');
+INSERT musaThemes (theme_name) VALUES ('Hopp');
 
 SET FOREIGN_KEY_CHECKS = 1;          
