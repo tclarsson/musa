@@ -26,7 +26,7 @@ DROP TABLE IF EXISTS `musaTokens`;
 DROP TABLE IF EXISTS `musaUsers`;
 DROP TABLE IF EXISTS `musaOrgs`;
 DROP TABLE IF EXISTS `musaRoleTypes`;
-DROP TABLE IF EXISTS `musaUserStatus`;
+DROP TABLE IF EXISTS `musaStatusTypes`;
     
 CREATE TABLE IF NOT EXISTS `musaRoleTypes`
 (
@@ -42,24 +42,28 @@ INSERT musaRoleTypes (role_code, role_name, permissions) VALUES ('EDITOR','Edito
 INSERT musaRoleTypes (role_code, role_name, permissions) VALUES ('USER','Användare','user');
 
 
-CREATE TABLE IF NOT EXISTS `musaUserStatus`
+CREATE TABLE IF NOT EXISTS `musaStatusTypes`
 (
  `status_code` varchar(45) NOT NULL ,
- `status_name` varchar(45) NOT NULL ,
+ `status_name` varchar(100) NOT NULL ,
+ `status_visible` bool NOT NULL DEFAULT false,
 PRIMARY KEY (`status_code`)
 );
-INSERT musaUserStatus (status_code, status_name) VALUES ('INVITED','Inbjuden');
-INSERT musaUserStatus (status_code, status_name) VALUES ('NORMAL','Normal');
-INSERT musaUserStatus (status_code, status_name) VALUES ('DISABLED','Avstängd');
-INSERT musaUserStatus (status_code, status_name) VALUES ('DELETED','Raderad');
+INSERT musaStatusTypes (status_code, status_name) VALUES ('NORMAL','Normal');
+INSERT musaStatusTypes (status_code, status_name) VALUES ('DISABLED','Avstängd');
+INSERT musaStatusTypes (status_code, status_name) VALUES ('DELETED','Raderad');
+INSERT musaStatusTypes (status_code, status_name, status_visible) VALUES ('INVITED','Inbjuden',1);
 
 CREATE TABLE IF NOT EXISTS `musaOrgs`
 (
     `org_id` int(11) NOT NULL AUTO_INCREMENT,
     `org_name` varchar(200) NOT NULL ,
     `org_info` text  DEFAULT NULL ,
+    `status_code` varchar(45) DEFAULT 'NORMAL',
     `org_created` timestamp NOT NULL DEFAULT current_timestamp(),
-    PRIMARY KEY (`org_id`)
+    PRIMARY KEY (`org_id`),
+    KEY `status_idx` (`status_code`),
+    CONSTRAINT `org_status_code` FOREIGN KEY (`status_code`) REFERENCES `musaStatusTypes` (`status_code`) ON DELETE NO ACTION ON UPDATE CASCADE
 );
 INSERT musaOrgs (org_id, org_name, org_info) VALUES (1,'MUSA Administration','Organisationen som sköter administrationen av MUSA');
 INSERT musaOrgs (org_id, org_name) VALUES (2,'Testkyrkan2');
@@ -76,7 +80,7 @@ CREATE TABLE IF NOT EXISTS `musaUsers` (
     `external_visible`       bool NOT NULL DEFAULT true,
     `email_verified` varchar(45) DEFAULT NULL,
     `password` varchar(100) DEFAULT NULL,
-    `status_code` varchar(45) DEFAULT NULL,
+    `status_code` varchar(45) DEFAULT 'NORMAL',
     `role_code` varchar(45) DEFAULT NULL,
     `last_login` datetime DEFAULT NULL,
     `user_created` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -87,7 +91,7 @@ CREATE TABLE IF NOT EXISTS `musaUsers` (
     KEY `org_id_idx` (`org_id`),
     CONSTRAINT `org_id` FOREIGN KEY (`org_id`) REFERENCES `musaOrgs` (`org_id`) ON DELETE NO ACTION ON UPDATE CASCADE,
     CONSTRAINT `role_code` FOREIGN KEY (`role_code`) REFERENCES `musaRoleTypes` (`role_code`) ON DELETE NO ACTION ON UPDATE CASCADE,
-    CONSTRAINT `status_code` FOREIGN KEY (`status_code`) REFERENCES `musaUserStatus` (`status_code`) ON DELETE NO ACTION ON UPDATE CASCADE
+    CONSTRAINT `status_code` FOREIGN KEY (`status_code`) REFERENCES `musaStatusTypes` (`status_code`) ON DELETE NO ACTION ON UPDATE CASCADE
   );
 INSERT musaUsers (org_id, name, email, password, role_code) VALUES (1,'Thomas','thomas@tclarsson.se','$2y$10$EwlLs6xsjQLwQIFTlTOak.oknzEB/1Ja0VvYgoExDVTcskOHHm1mu','ROOT');
 INSERT musaUsers (org_id, name, email, password, role_code) VALUES (1,'Erik','erblom@gmail.com','$2y$10$EwlLs6xsjQLwQIFTlTOak.oknzEB/1Ja0VvYgoExDVTcskOHHm1mu','ROOT');

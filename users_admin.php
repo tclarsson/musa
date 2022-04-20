@@ -5,15 +5,17 @@ $page_title='Användare';
 $user->admit(['super']);
 // ------------------------------------------------------
 $sql_table="
-FROM musaUsers
+FROM musaUsers 
 LEFT JOIN musaOrgs ON musaOrgs.org_id=musaUsers.org_id
+LEFT JOIN musaStatusTypes user ON user.status_code=musaUsers.status_code
+LEFT JOIN musaStatusTypes org ON org.status_code=musaOrgs.status_code
 WHERE musaUsers.org_id=$_REQUEST[org_id]
 ";
 $sql_group="";
-
+//print_r("SELECT * $sql_table");exit;
 //$r=$db->getRecFrmQry("SELECT * $sql_table");pa('$cols_visible='.json_encode(array_keys($r[0])).';');exit;
-$cols_visible=["user_id","name","title","email","phone","role","show","email_verified","status_code","role_code","last_login","user_created","org_name"];
-$cols_searchable=["user_id","name","title","email","phone","role","show","email_verified","status_code","role_code"];
+$cols_visible=["user_id","name","title","email","phone","external_visible","email_verified","status_code","role_code","last_login","user_created","org_name"];
+$cols_searchable=["user_id","name","title","email","phone","external_visible","email_verified","status_code","role_code"];
 $cols=get_columns_info($cols_visible);
 
 $order = "org_name";
