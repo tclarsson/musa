@@ -15,7 +15,7 @@ if($user->isLoggedIn()): ?>
           ?>
 
 <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
-<span class="navbar-brand"><img src="<?php print(ROOT_URI);?>images/logo.png" width="70" height="50" alt=""></span>
+<span class="navbar-brand"><a href='<?php print(URL_SUPPORT);?>'><img src="<?php print(ROOT_URI);?>images/logo.png" width="50" height="50" alt="" title="MUSA"></a></span>
     <div class="d-flex flex-row order-2 order-lg-3">
       <ul class="navbar-nav flex-row">
       <?php if($user->can(['manual'],false)): ?>
@@ -99,9 +99,10 @@ if($user->isLoggedIn()): ?>
       System
     </a>
     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-    <a class="dropdown-item" href="<?php print(ROOT_URI);?>orgs_admin.php">Organisationer</a>
+      <a class="dropdown-item" href="<?php print(ROOT_URI);?>orgs_admin.php">Organisationer</a>
       <a class="dropdown-item" href="<?php print(ROOT_URI);?>admins_admin.php">Administratörer</a>
       <div class="dropdown-divider"></div>
+      <a class="dropdown-item" href="<?php print(ROOT_URI);?>orgs_admin.php?recover">Dolda Organisationer</a>
       <a class="dropdown-item" href="<?php print(ROOT_URI);?>users_delete.php">Radera användare</a>
       <div class="dropdown-divider"></div>
       <?php 

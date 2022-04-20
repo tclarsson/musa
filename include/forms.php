@@ -3,11 +3,21 @@
 // get global columns info
 $columns=json_decode(file_get_contents('columns.json',true),true);
 // ------------------------------------------------------
-function gen_input($c){
-    global $columns;
+function get_col_info($c){
+    global $columns,$db;
     $i=$columns[$c];
     if(empty($i['errmsg'])) $i['errmsg']='';
-    if(empty($i['sqltype'])) print("</br>Missing information about column: $c</br>");
+    if(empty($i['sqltype'])) $i['sqltype']=$db->getColInfo($c)['Type'];
+    if(empty($i['name'])) $i['name']=$db->getColInfo($c)['Field'];
+    if(empty($i['header'])) $i['header']=$db->getColInfo($c)['Field'];
+    if(empty($i['sqltype'])) {
+        print("</br>Missing information about column: $c</br>");
+    }
+    return($i);
+}
+
+function gen_input($c){
+    $i=get_col_info($c);
     if(!empty($i['required'])) $rec="required"; else $rec="";
     $t=explode("(",$i['sqltype']);
     switch($t[0]){
@@ -42,9 +52,7 @@ function gen_input($c){
 }
 
 function gen_select($c){
-    global $columns;
-    $i=$columns[$c];
-    if(empty($i['errmsg'])) $i['errmsg']='';
+    $i=get_col_info($c);
     if(!empty($i['required'])) $rec="required"; else $rec="";
     print('
     <div class="form-group">
@@ -59,9 +67,7 @@ function gen_select($c){
 }
 
 function gen_mselect($c){
-    global $columns;
-    $i=$columns[$c];
-    if(empty($i['errmsg'])) $i['errmsg']='';
+    $i=get_col_info($c);
     print('
     <div class="form-group">
     <label>'.$i['header'].' (flerval)</label>
@@ -74,8 +80,7 @@ function gen_mselect($c){
 }
 
 function gen_checks($c){
-    global $columns;
-    $i=$columns[$c];
+    $i=get_col_info($c);
     $cv=$i['value'];
     $mc="";if(count($i['select'])>1) $mc=" (flerval)";
     if(!is_array($cv)) $cv=[$cv];

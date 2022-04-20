@@ -6,6 +6,8 @@ class Database{
      * @var \PDO
      */
     protected $pdo = null;
+    public $tables = [];
+    public $columns = [];
  
     /**
      * Connect to the database
@@ -416,6 +418,26 @@ class Database{
         }
       }
       return $arr;
+    }
+
+    //-------------------------------------------------------
+    // get column info
+    public function getColInfo($c) {
+        if(empty($this->tables)){
+            $this->tables= self::getColFrmQry("SHOW TABLES");
+        }
+        if(empty($this->columns)){
+            foreach ($this->tables as $tn) {
+                $ti = self::getRecFrmQry("SHOW COLUMNS IN $tn");
+                foreach ($ti as $ci) {
+                    $this->columns[$ci['Field']]=$ci;
+                }
+            }
+        }
+        if(!empty($this->columns[$c])) {
+            return($this->columns[$c]);
+        }
+        return null;
     }
 }
 ?>

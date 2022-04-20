@@ -19,6 +19,8 @@ const EMAIL_CONTACT='musa@tclarsson.se';
 const EMAILLIST_NOTIFY_NEW_MEMBERS=['thomas@tclarsson.se'];
 const EMAIL_SUPPORT='support@enfast.se';
 
+const URL_SUPPORT='https://support.enfast.se';
+
 
 
 // start session

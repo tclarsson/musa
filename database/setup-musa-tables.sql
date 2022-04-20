@@ -45,14 +45,15 @@ INSERT musaRoleTypes (role_code, role_name, permissions) VALUES ('USER','Använd
 CREATE TABLE IF NOT EXISTS `musaStatusTypes`
 (
  `status_code` varchar(45) NOT NULL ,
- `status_name` varchar(100) NOT NULL ,
- `status_visible` bool NOT NULL DEFAULT false,
+ `status_name` varchar(45) NOT NULL ,
+ `status_hidden` int NOT NULL DEFAULT 1,
 PRIMARY KEY (`status_code`)
 );
-INSERT musaStatusTypes (status_code, status_name) VALUES ('NORMAL','Normal');
-INSERT musaStatusTypes (status_code, status_name) VALUES ('DISABLED','Avstängd');
-INSERT musaStatusTypes (status_code, status_name) VALUES ('DELETED','Raderad');
-INSERT musaStatusTypes (status_code, status_name, status_visible) VALUES ('INVITED','Inbjuden',1);
+INSERT musaStatusTypes (status_code, status_name, status_hidden) VALUES ('NORMAL','Normal',0);
+INSERT musaStatusTypes (status_code, status_name, status_hidden) VALUES ('INVITED','Inbjuden',1);
+INSERT musaStatusTypes (status_code, status_name, status_hidden) VALUES ('HIDDEN','Dold',2);
+INSERT musaStatusTypes (status_code, status_name, status_hidden) VALUES ('DISABLED','Avstängd',3);
+INSERT musaStatusTypes (status_code, status_name, status_hidden) VALUES ('DELETED','Raderad',4);
 
 CREATE TABLE IF NOT EXISTS `musaOrgs`
 (

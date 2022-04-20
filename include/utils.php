@@ -46,6 +46,28 @@ function update_columns_info($ca){
     return $update;
 }
 
+// ------------------------------------------------------
+// Modals
+// ------------------------------------------------------
+function make_modal($m){
+    print("
+    <div class='modal fade' id='$m[id]' tabindex='-1' role='dialog'>
+        <div class='modal-dialog' role='document'>
+            <div class='modal-content'>
+            <div class='modal-header modal-header-title bg-info text-light'>$m[head]
+                <button type='button' class='close text-light' data-dismiss='modal'>&times;</button>
+            </div>
+            <div class='modal-body'>$m[body]</div>
+            <div class='modal-footer'><button type='button' class='btn btn-secondary' data-dismiss='modal'>Stäng</button></div>
+            </div>
+        </div>
+    </div>
+    ");
+}
+// ------------------------------------------------------
+// Below features are not reviewed
+// ------------------------------------------------------
+
 function arr2table($t){
     if(!empty($t)) {
         print('

@@ -1153,5 +1153,10 @@
         "name": "Skapad",
         "header": "Skapad",
         "type": "s"
+    },
+    "status_name": {
+        "name": "status_name",
+        "header": "Status",
+        "type": "s"
     }
 }
