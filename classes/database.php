@@ -433,6 +433,7 @@ class Database{
                     $this->columns[$ci['Field']]=$ci;
                 }
             }
+            //pa($this->columns);
         }
         if(!empty($this->columns[$c])) {
             return($this->columns[$c]);

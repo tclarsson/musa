@@ -516,6 +516,7 @@ function set_search_sort_pagination(){
     // grouping
     if(empty($sql_group)) $sql_group="";
     $sql = "$sql $sql_group";
+    //pa($sql);
 
     // calculate num rows & pages
     $r=$db->getRecFrmQry("SELECT COUNT(*) as 'rows' $sql");
@@ -813,9 +814,13 @@ function wip(){
     print("title=\"$t\" onclick=\"alert('$a');return false;\">$i");
 }
 
-function pa($a){
+function pa($a,$callstack=false){
     print('<pre>');
     print_r($a);
+    if($callstack) foreach (debug_backtrace() as $v) {
+        print("Line $v[line] in ".basename($v['file'])." calls $v[function]\n");
+    }
+    //print_r(debug_backtrace());
     print('</pre>');
 }
 

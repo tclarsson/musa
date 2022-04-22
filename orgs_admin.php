@@ -12,7 +12,7 @@ FROM musaOrgs
 LEFT JOIN musaStatusTypes org ON org.status_code=musaOrgs.status_code
 WHERE $ws
 ";
-$sql_group="";
+$sql_group="GROUP BY musaOrgs.org_id";
 
 //$cols=update_columns_info(['status_name'=>'Status']);
 $cols_visible=['org_id', 'org_name', 'org_info','status_name', 'org_created'];

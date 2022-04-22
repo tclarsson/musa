@@ -10,6 +10,7 @@ function get_col_info($c){
     if(empty($i['sqltype'])) $i['sqltype']=$db->getColInfo($c)['Type'];
     if(empty($i['name'])) $i['name']=$db->getColInfo($c)['Field'];
     if(empty($i['header'])) $i['header']=$db->getColInfo($c)['Field'];
+    if(empty($i['required'])) $i['required']=($db->getColInfo($c)['Null']=='NO')?1:0;
     if(empty($i['sqltype'])) {
         print("</br>Missing information about column: $c</br>");
     }

@@ -144,6 +144,45 @@ class User {
     }
 
     //-------------------------------------------------------
+    // current org_id
+    //-------------------------------------------------------
+    public function current_org_id($reset=false){
+        // set own org
+        if(empty($_SESSION['musa_org_id'])||$reset) $_SESSION['musa_org_id']=$this->data['org_id'];
+        // set session org_id from request if allowed
+        if($this->can(['represent'])){
+            if(!empty($_REQUEST['org_id'])){
+                // change session/current org_id
+                $_SESSION['musa_org_id']=$_REQUEST['org_id'];
+            }    
+        }
+        // return session org_id
+        return $_SESSION['musa_org_id'];
+    }
+    public function current_org_name(){
+        if(empty($_SESSION['musa_org_id'])) $this->current_org_id();
+        // get current org name
+        if($_SESSION['musa_org_id']!=$this->data['org_id']){
+            // load org
+            $sql="SELECT org_name
+            FROM musaOrgs
+            WHERE org_id=$_SESSION[musa_org_id]
+            ";        
+            //pa($sql);
+            try {
+                $a=$this->db->getColFrmQry($sql);
+            } catch(Exception $e) {
+                $a=[];
+            }
+            //pa($a,true);
+            return $a[0];
+        } else {
+            return $this->data['org_name'];
+        }
+    }
+    //-------------------------------------------------------
+
+    //-------------------------------------------------------
     // check if a user_id is logged in or log in with cookies
     // -load user data if logged in
     //-------------------------------------------------------
@@ -290,6 +329,7 @@ class User {
         // fetch if needed
         $this->fetchUser();
         // if root -register all permissions
+        //pa($this->data,true);
         if($this->data['role_code']=='ROOT') {
             $this->addPerms($permission);
             $this->logPagePerms($permission);
@@ -348,31 +388,34 @@ class User {
 
      */
     private function fetchUser($refresh = false) {
-        // check if loaded - then return
-        if(is_array( $this->permissions )&&!$refresh) return true;
+        // check if not loaded - then load
+        if(empty( $this->data )||$refresh){
 
-        // load user
-        $sql="SELECT * 
-        FROM musaUsers
-        LEFT JOIN musaRoleTypes ON musaRoleTypes.role_code=musaUsers.role_code
-        LEFT JOIN musaUserStatus ON musaUserStatus.status_code=musaUsers.status_code
-        LEFT JOIN musaOrgs ON musaOrgs.org_id=musaUsers.org_id
-        WHERE musaUsers.user_id=$this->id
-        ";        
-        //pa($sql);
-        try {
-            $a=$this->db->getRecFrmQry($sql);
-        } catch(Exception $e) {
-            $a=[];
+            // load user
+            $sql="SELECT * 
+            FROM musaUsers
+            LEFT JOIN musaRoleTypes ON musaRoleTypes.role_code=musaUsers.role_code
+            LEFT JOIN musaUserStatus ON musaUserStatus.status_code=musaUsers.status_code
+            LEFT JOIN musaOrgs ON musaOrgs.org_id=musaUsers.org_id
+            WHERE musaUsers.user_id=$this->id
+            ";        
+            //pa($sql);
+            try {
+                $a=$this->db->getRecFrmQry($sql);
+            } catch(Exception $e) {
+                $a=[];
+            }
+            //pa($a);
+            if(empty($a)) {
+                $this->data=[];
+                $this->permissions=[];
+            } else {
+                $this->data=$a[0];
+                $this->permissions=json_decode($a[0]['permissions']);
+            }
+            if(!is_array($this->permissions)) $this->permissions=[$this->permissions];
         }
-        if(empty($a)) {
-            $this->data=[];
-            $this->permissions=[];
-        } else {
-            $this->data=$a[0];
-            $this->permissions=json_decode($a[0]['permissions']);
-        }
-        if(!is_array($this->permissions)) $this->permissions=[$this->permissions];
+
         return is_array( $this->permissions );
     }
  

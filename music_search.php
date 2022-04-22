@@ -1,9 +1,9 @@
 <?php 
 require_once 'environment.php';
 // ------------------------------------------------------
-$page_nocontainer=true;
-$page_title='Användare';
-$user->admit(['super']);
+//$page_nocontainer=true;
+$page_title='Musikarkivet';
+$user->admit([]);
 
 // ------------------------------------------------------
 $sql_table="
@@ -38,16 +38,26 @@ $rl=$db->getRecFrmQry("SELECT * $sql LIMIT $offset, $no_of_records_per_page");
 // display page
 // ------------------------------------------------------
 require_once 'header.php';
-//Card: Header
+//Card: Search
 print("
 <div class='card bg-light'>
     <div class='card-header'>
       <div class='row card-header-title'> 
-          <div class='col'>{$user->data['org_name']}</div>
+          <div class='col'>{$user->current_org_name()}: Sökning</div>
           <div class='col-auto'>
           <button type='button' data-target='#pageHelp' title='Information och Hjälp' class='btn btn-info float-right ml-2' data-toggle='modal'><i class='fa fa-info-circle'></i></button>
           </div>
       </div>
+    </div>
+    <div class='card-body'>
+        <div class='container'>
+        <form action='' method='post'  class='needs-validation' novalidate>
+        <input type='text' class='form-control' placeholder='Sök (tryck Enter)' name='search' value=''>
+        <button type='submit' name='bt_create' class='btn btn-success'><i class='fa fa-eye'></i> Sök</button>
+
+        </form>
+
+        </div>
     </div>
 </div>
 </br>

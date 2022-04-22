@@ -10,7 +10,7 @@ require_once 'utils.php';
 if($user->isLoggedIn()): ?>
   <?php
   if(!empty($user->data['org_name'])) print("
-<div class='bg-dark text-light'><strong class='ml-2'>".$user->data['org_name']."</strong></div>
+<div class='bg-dark text-light'><strong class='ml-2'>".$user->current_org_name()."</strong></div>
           ");
           ?>
 
@@ -62,7 +62,7 @@ if($user->isLoggedIn()): ?>
   <ul class="navbar-nav mr-auto"> 
   <?php if($user->can(['admin','search'],false)): ?>
     <li class="nav-item">
-      <a class="nav-link" href="<?php print(ROOT_URI."search.php");?>">Söka</a>
+      <a class="nav-link" href="<?php print(ROOT_URI."music_search.php");?>">Söka</a>
     </li>
   <?php endif?>
   <?php if($user->can(['admin','edit'],false)): ?>
