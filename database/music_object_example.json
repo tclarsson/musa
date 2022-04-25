@@ -1,176 +1,23 @@
 { "a":2 , "b":{ "a":2 , "b":"test"}
 }
 
-SET FOREIGN_KEY_CHECKS = 0;
-
-DROP TABLE IF EXISTS `musaMusicSongsolos`;
-DROP TABLE IF EXISTS `musaGenderTypes`;
-DROP TABLE IF EXISTS `musaSoloVoices`;
-DROP TABLE IF EXISTS `musaMusic`;
-DROP TABLE IF EXISTS `musaChoirVoices`;
-DROP TABLE IF EXISTS `musaCountries`;
-DROP TABLE IF EXISTS `musaPersons`;
-DROP TABLE IF EXISTS `musaMusicHolidays`;
-DROP TABLE IF EXISTS `musaMusicCategories`;
-DROP TABLE IF EXISTS `musaStorages`;
-DROP TABLE IF EXISTS `musaMusicArrangers`;
-DROP TABLE IF EXISTS `musaMusicLanguages`;
-DROP TABLE IF EXISTS `musaHolidays`;
-DROP TABLE IF EXISTS `musaCategories`;
-DROP TABLE IF EXISTS `musaMusicThemes`;
-DROP TABLE IF EXISTS `musaThemes`;
-DROP TABLE IF EXISTS `musaMusicAuthors`;
-DROP TABLE IF EXISTS `musaInstruments`;
-DROP TABLE IF EXISTS `musaMusicInstruments`;
-DROP TABLE IF EXISTS `musaLanguages`;
-DROP TABLE IF EXISTS `musaMusicComposers`;
-
-DROP TABLE IF EXISTS `musaTokens`;
-DROP TABLE IF EXISTS `musaUsers`;
-DROP TABLE IF EXISTS `musaOrgs`;
-DROP TABLE IF EXISTS `musaRoleTypes`;
-DROP TABLE IF EXISTS `musaStatusTypes`;
-    
-CREATE TABLE IF NOT EXISTS `musaRoleTypes`
-(
-    `role_code`   varchar(45) NOT NULL ,
-    `role_name`   varchar(45) NOT NULL ,
-    `permissions` text NOT NULL ,
-PRIMARY KEY (`role_code`)
-);
-INSERT musaRoleTypes (role_code, role_name, permissions) VALUES ('ROOT','Root','root');
-INSERT musaRoleTypes (role_code, role_name, permissions) VALUES ('SUPER','Superadmin','super');
-INSERT musaRoleTypes (role_code, role_name, permissions) VALUES ('ADMIN','Administratör','admin');
-INSERT musaRoleTypes (role_code, role_name, permissions) VALUES ('EDITOR','Editor','editor');
-INSERT musaRoleTypes (role_code, role_name, permissions) VALUES ('USER','Användare','user');
-
-
-CREATE TABLE IF NOT EXISTS `musaStatusTypes`
-(
- `status_code` varchar(45) NOT NULL ,
- `status_name` varchar(45) NOT NULL ,
- `status_hidden` int NOT NULL DEFAULT 1,
-PRIMARY KEY (`status_code`)
-);
-INSERT musaStatusTypes (status_code, status_name, status_hidden) VALUES ('NORMAL','Normal',0);
-INSERT musaStatusTypes (status_code, status_name, status_hidden) VALUES ('INVITED','Inbjuden',1);
-INSERT musaStatusTypes (status_code, status_name, status_hidden) VALUES ('HIDDEN','Dold',2);
-INSERT musaStatusTypes (status_code, status_name, status_hidden) VALUES ('DISABLED','Avstängd',3);
-INSERT musaStatusTypes (status_code, status_name, status_hidden) VALUES ('DELETED','Raderad',4);
-
-CREATE TABLE IF NOT EXISTS `musaOrgs`
-(
-    `org_id` int(11) NOT NULL AUTO_INCREMENT,
-    `org_name` varchar(200) NOT NULL ,
-    `org_info` text  DEFAULT NULL ,
-    `status_code` varchar(45) DEFAULT 'NORMAL',
-    `org_created` timestamp NOT NULL DEFAULT current_timestamp(),
-    PRIMARY KEY (`org_id`),
-    KEY `status_idx` (`status_code`),
-    CONSTRAINT `org_status_code` FOREIGN KEY (`status_code`) REFERENCES `musaStatusTypes` (`status_code`) ON DELETE NO ACTION ON UPDATE CASCADE
-);
-INSERT musaOrgs (org_id, org_name, org_info) VALUES (1,'MUSA Administration','Organisationen som sköter administrationen av MUSA');
-INSERT musaOrgs (org_id, org_name) VALUES (2,'Testkyrkan2');
-INSERT musaOrgs (org_id, org_name) VALUES (3,'Testkyrkan3');
-
-DROP TABLE IF EXISTS `musaUsers`;
-CREATE TABLE IF NOT EXISTS `musaUsers` (
-    `user_id` int(11) NOT NULL AUTO_INCREMENT,
-    `org_id`     int(11) NOT NULL ,
-    `name`       varchar(100) NOT NULL ,
-    `title`      varchar(200) DEFAULT NULL ,
-    `email`      varchar(100) DEFAULT NULL ,
-    `phone`      varchar(100) DEFAULT NULL ,
-    `external_visible`       bool NOT NULL DEFAULT true,
-    `email_verified` varchar(45) DEFAULT NULL,
-    `password` varchar(100) DEFAULT NULL,
-    `status_code` varchar(45) DEFAULT 'NORMAL',
-    `role_code` varchar(45) DEFAULT NULL,
-    `last_login` datetime DEFAULT NULL,
-    `user_created` timestamp NOT NULL DEFAULT current_timestamp(),
-    PRIMARY KEY (`user_id`),
-    UNIQUE KEY `email_UNIQUE` (`email`),
-    KEY `status_idx` (`status_code`),
-    KEY `role_code_idx` (`role_code`),
-    KEY `org_id_idx` (`org_id`),
-    CONSTRAINT `org_id` FOREIGN KEY (`org_id`) REFERENCES `musaOrgs` (`org_id`) ON DELETE NO ACTION ON UPDATE CASCADE,
-    CONSTRAINT `role_code` FOREIGN KEY (`role_code`) REFERENCES `musaRoleTypes` (`role_code`) ON DELETE NO ACTION ON UPDATE CASCADE,
-    CONSTRAINT `status_code` FOREIGN KEY (`status_code`) REFERENCES `musaStatusTypes` (`status_code`) ON DELETE NO ACTION ON UPDATE CASCADE
-  );
-INSERT musaUsers (org_id, name, email, password, role_code) VALUES (1,'Thomas','thomas@tclarsson.se','$2y$10$EwlLs6xsjQLwQIFTlTOak.oknzEB/1Ja0VvYgoExDVTcskOHHm1mu','ROOT');
-INSERT musaUsers (org_id, name, email, password, role_code) VALUES (1,'Erik','erblom@gmail.com','$2y$10$EwlLs6xsjQLwQIFTlTOak.oknzEB/1Ja0VvYgoExDVTcskOHHm1mu','ROOT');
-INSERT musaUsers (org_id, name, email, password, role_code) VALUES (2,'Adminson','test1@tclarsson.se','$2y$10$EwlLs6xsjQLwQIFTlTOak.oknzEB/1Ja0VvYgoExDVTcskOHHm1mu','ADMIN');
-INSERT musaUsers (org_id, name, email, password, role_code) VALUES (2,'Editson','test2@tclarsson.se','$2y$10$EwlLs6xsjQLwQIFTlTOak.oknzEB/1Ja0VvYgoExDVTcskOHHm1mu','EDITOR');
-INSERT musaUsers (org_id, name, email, password, role_code) VALUES (2,'Testson','test3@tclarsson.se','$2y$10$EwlLs6xsjQLwQIFTlTOak.oknzEB/1Ja0VvYgoExDVTcskOHHm1mu','USER');
-
-CREATE TABLE IF NOT EXISTS `musaTokens` (
-    `token_id` int(11) NOT NULL AUTO_INCREMENT,
-    `token` varchar(100) NOT NULL,
-    `user_id` int(11) NOT NULL,
-    `expiry_date` datetime NOT NULL,
-    `token_created` timestamp NOT NULL DEFAULT current_timestamp(),
-    PRIMARY KEY (`token_id`),
-    KEY `FK_21` (`user_id`),
-    CONSTRAINT `FK_19` FOREIGN KEY (`user_id`) REFERENCES `musaUsers` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
-    );
-  
-
-CREATE TABLE IF NOT EXISTS `musaMusic`
-(
- `music_id`      integer NOT NULL AUTO_INCREMENT,
- `org_id`        integer NOT NULL ,
- `storage_id`    integer NULL ,
- `choir_parts`   integer NULL ,
- `solo_parts`    integer NULL ,
- `titel`         varchar(100) NOT NULL ,
- `subtitle`      varchar(100) NULL ,
- `yearOfComp`    year NULL ,
- `movements`     integer NULL ,
- `notes`         text NULL ,
- `serial_number` varchar(45) NULL ,
- `publisher`     varchar(200) NULL ,
- `identifier`    varchar(200) NULL ,
-
-PRIMARY KEY (`music_id`),
-KEY `FK_296` (`solo_parts`),
-CONSTRAINT `FK_294` FOREIGN KEY `FK_296` (`solo_parts`) REFERENCES `musaChoirVoices` (`choir_voice_id`) ON DELETE NO ACTION ON UPDATE CASCADE,
-KEY `FK_299` (`choir_parts`),
-CONSTRAINT `FK_297` FOREIGN KEY `FK_299` (`choir_parts`) REFERENCES `musaChoirVoices` (`choir_voice_id`) ON DELETE NO ACTION ON UPDATE CASCADE,
-KEY `FK_466` (`org_id`),
-CONSTRAINT `FK_464` FOREIGN KEY `FK_466` (`org_id`) REFERENCES `musaOrgs` (`org_id`),
-KEY `FK_470` (`storage_id`),
-CONSTRAINT `FK_468` FOREIGN KEY `FK_470` (`storage_id`) REFERENCES `musaStorages` (`storage_id`)
-);
-
-
-INSERT INTO `musa`.`musaMusic`
-(`music_id`,
-`org_id`,
-`storage_id`,
-`choir_parts`,
-`solo_parts`,
-`titel`,
-`subtitle`,
-`yearOfComp`,
-`movements`,
-`notes`,
-`serial_number`,
-`publisher`,
-`identifier`)
-VALUES
-(1,
-2,
-1,
-1,
-1,
-'Dancing queen',
-'Dancing queen - version 0',
-1976,
-1,
-'Dancing queen & Dancing queen & Dancing queen',
-'abc123',
-'hardrock cafe',
-'IBSN:4546586lksdjf');
+"music_id":"music_id",
+"org_id":"org_id",
+"titel":"titel",
+"subtitle":"subtitle",
+"yearOfComp":"yearOfComp",
+"movements":"movements",
+"notes":"notes",
+"serial_number":"serial_number",
+"publisher":"publisher",
+"identifier":"identifier",
+"storage_id":"storage_id",
+"choir_parts":"choir_parts",
+"solo_parts":"solo_parts",
+`musaMusicArrangers`
+`musaMusicAuthors`
+`musaMusicCategories`
+`musaMusicComposers`
 
 
 # global table of categories, user gets to see/use own orgs used musaCategories
