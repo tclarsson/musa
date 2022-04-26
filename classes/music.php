@@ -392,7 +392,7 @@ class Music {
         //$sql="SELECT *,musaMusic.*,musaOrgs.*,musaStorages.*
         $sc=implode(",", $cols);
         $sql="SELECT musaMusic.*
-        ,CONCAT_WS('#',$sc) as alla
+        ,CONCAT_WS('#',$sc) as search_field
         FROM musaMusic
         LEFT JOIN musaOrgs ON musaOrgs.org_id=musaMusic.org_id
         LEFT JOIN musaStatusTypes ON musaStatusTypes.status_code=musaOrgs.status_code

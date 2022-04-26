@@ -1,5 +1,6 @@
 <?php 
 require_once 'environment.php';
+require_once 'music.php';
 // ------------------------------------------------------
 //$page_nocontainer=true;
 $page_title='Musikarkivet';
@@ -7,20 +8,33 @@ $user->admit([]);
 
 // ------------------------------------------------------
 $sql_table="
-FROM musaUsers 
-LEFT JOIN musaOrgs ON musaOrgs.org_id=musaUsers.org_id
-LEFT JOIN musaStatusTypes user ON user.status_code=musaUsers.status_code
-WHERE musaUsers.org_id={$user->current_org_id()}
+,musaMusic.music_id
+   ,GROUP_CONCAT(DISTINCT CONCAT_WS(' ',comp.first_name,comp.family_name) SEPARATOR ', ') as comp
+   ,GROUP_CONCAT(DISTINCT CONCAT_WS(' ',arr.first_name,arr.family_name) SEPARATOR ', ') as arr
+   ,GROUP_CONCAT(DISTINCT CONCAT_WS(' ',auth.first_name,auth.family_name) SEPARATOR ', ') as auth
+FROM musaMusic
+LEFT JOIN musaOrgs ON musaOrgs.org_id=musaMusic.org_id
+LEFT JOIN musaStatusTypes ON musaStatusTypes.status_code=musaOrgs.status_code
+LEFT JOIN musaStorages ON musaStorages.storage_id=musaMusic.storage_id
+LEFT JOIN musaMusicComposers ON musaMusicComposers.music_id=musaMusic.music_id
+LEFT JOIN musaPersons comp ON comp.person_id=musaMusicComposers.person_id
+LEFT JOIN musaMusicArrangers ON musaMusicArrangers.music_id=musaMusic.music_id
+LEFT JOIN musaPersons arr ON arr.person_id=musaMusicArrangers.person_id
+LEFT JOIN musaMusicAuthors ON musaMusicAuthors.music_id=musaMusic.music_id
+LEFT JOIN musaPersons auth ON auth.person_id=musaMusicAuthors.person_id
+WHERE musaStatusTypes.status_hidden=0 AND musaMusic.org_id={$user->current_org_id()}
 ";
-$sql_group="";
+//$sql_group="GROUP BY musaMusic.music_id";
+$sql_group="GROUP BY musaMusic.music_id";
 //print_r("SELECT * $sql_table");exit;
 //$r=$db->getRecFrmQry("SELECT * $sql_table");pa('$cols_visible='.json_encode(array_keys($r[0])).';');exit;
-$cols_visible=["user_id","name","title","email","phone","external_visible","email_verified","status_code","role_code","last_login","user_created","org_name"];
-$cols_searchable=["user_id","name","title","email","phone","external_visible","email_verified","user.status_code","role_code"];
+$cols_visible=["music_id","title","subtitle","yearOfComp","movements","notes","publisher","comp","arr","auth"];
+$cols_searchable=["title","subtitle","yearOfComp","movements","notes","publisher"];
+
 $cols=get_columns_info($cols_visible);
 
-$order = "name";
-$purl="users_update.php";
+$order = "title";
+$purl="music_update.php";
 
 // ------------------------------------------------------
 
@@ -30,6 +44,7 @@ set_search_sort_pagination();
 // ------------------------------------------------------
 // do query with pagination limits for display
 $rl=$db->getRecFrmQry("SELECT * $sql LIMIT $offset, $no_of_records_per_page");
+//pcols($rl);
 
 // ------------------------------------------------------
 //setMessage("Draft Org admin");
@@ -38,6 +53,8 @@ $rl=$db->getRecFrmQry("SELECT * $sql LIMIT $offset, $no_of_records_per_page");
 // display page
 // ------------------------------------------------------
 require_once 'header.php';
+
+$ts="";if(!empty($_REQUEST['search'])) $ts=htmlspecialchars($_REQUEST['search']);
 //Card: Search
 print("
 <div class='card bg-light'>
@@ -51,10 +68,9 @@ print("
     </div>
     <div class='card-body'>
         <div class='container'>
-        <form action='' method='post'  class='needs-validation' novalidate>
-        <input type='text' class='form-control' placeholder='Sök (tryck Enter)' name='search' value=''>
-        <button type='submit' name='bt_create' class='btn btn-success'><i class='fa fa-eye'></i> Sök</button>
-
+        <form action='' method='get'  class='needs-validation' novalidate>
+          <input type='text' class='form-control' placeholder='Sök (tryck Enter)' name='search' value='$ts'>
+          <button type='submit' name='go' class='btn btn-primary'><i class='fa fa-eye'></i> Sök</button>
         </form>
 
         </div>
@@ -63,7 +79,6 @@ print("
 </br>
 ");
 
-$ts="";if(!empty($_REQUEST['search'])) $ts=htmlspecialchars($_REQUEST['search']);
 print("
 <form action='' method='get'>
 <div class='form-row'>
@@ -100,8 +115,8 @@ print("
             print("<td>".$i[$col]."</td>");
         }
         print("<td>
-        <a href='$purl?edit&user_id=$i[user_id]' title='Redigera' data-toggle='tooltip'><i class='fa fa-edit'></i></a>
-        &nbsp| <a href='$purl?delete&user_id=$i[user_id]' data-toggle='tooltip' ".confOp('delete')."</a>'
+        <a href='$purl?edit&music_id=$i[music_id]' title='Redigera' data-toggle='tooltip'><i class='fa fa-edit'></i></a>
+        &nbsp| <a href='$purl?delete&music_id=$i[music_id]' data-toggle='tooltip' ".confOp('delete')."</a>'
         </td></tr>");
       }
       print('</tbody></table>');
