@@ -824,6 +824,18 @@ function pa($a,$callstack=false){
     print('</pre>');
 }
 
+function pcols($a,$callstack=false){
+    print('<pre>');
+    $c=array_keys($a[0]);
+    print('$cols='.json_encode($c).';');
+    //print_r($a);
+    if($callstack) foreach (debug_backtrace() as $v) {
+        print("Line $v[line] in ".basename($v['file'])." calls $v[function]\n");
+    }
+    //print_r(debug_backtrace());
+    print('</pre>');
+}
+
 function jj($a){
     print('<pre>');
 //    print(json_encode($a,JSON_PRETTY_PRINT));

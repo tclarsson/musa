@@ -9,14 +9,29 @@ trait music_common {
         $this->db=$db;
         $this->object_modified=true;
     }
+    public function __set($name, $value) {
+        throw new \Exception("Adding new properties is not allowed on " . __CLASS__);
+    }
+    public function json() {
+        return json_encode($this,JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE);
+    }
 
-    static function p2a($o,$dump=false){
+  
+    protected static function p2a($o,$dump=false){
         $a=[];
         foreach ($o as $p=>$v) {
             $a[]=$p;
         }
         if($dump) pa('$props='.json_encode(($a)).';');
         return $a;
+    }
+    protected static function pa($a,$callstack=false){
+        print('<pre>');
+        print_r($a);
+        if($callstack) foreach (debug_backtrace() as $v) {
+            print("Line $v[line] in ".basename($v['file'])." calls $v[function]\n");
+        }
+        print('</pre>');
     }
 
     public function check_required($prop,$or) {
@@ -27,17 +42,6 @@ trait music_common {
         if(!$found) throw new \Exception("Missing one of properties: " . json_encode($or));
     }
   
-    public function __set($name, $value) {
-      throw new \Exception("Adding new properties is not allowed on " . __CLASS__);
-    }
-    public function pa($a,$callstack=false){
-        print('<pre>');
-        print_r($a);
-        if($callstack) foreach (debug_backtrace() as $v) {
-            print("Line $v[line] in ".basename($v['file'])." calls $v[function]\n");
-        }
-        print('</pre>');
-    }
     public function testSetProps() {
         foreach (self::p2a($this) as $p) {
             $this->{$p}=$p;
@@ -52,21 +56,18 @@ class Gender{
 
     public $gender_id=null;
     public $gender_name=null;
-    public function __construct($i) {
+    public function __construct($i=null) {
         self::common_construct();
-        if(empty($i)) $i=[];
-        else if(!is_array($i)) $i=['id'=>$i];
-        if(empty($i['id'])) $i['id']='UNKNOWN';
-        if(empty($i['name'])) $i['name']='Okänd';
-        $this->gender_id=strtoupper($i['id']);
-        $this->gender_name=$i['name'];
-        switch($this->gender_id){
-            case 'MALE':$this->gender_name='Man';break;
-            case 'FEMALE':$this->gender_name='Kvinna';break;
+
+        if(!empty($i)) {
+            if(!is_array($i)) {$i=['gender_id'=>$i];}
+            foreach ($this->p2a($this) as $p) if(isset($i[$p])) $this->{$p}=$i[$p];
+            if(!empty($this->gender_id)) $this->load();
         }
     }
 
     public function store(){
+        return;
         if(empty($this->gender_id)){
             $this->gender_id=strtoupper($this->gender_name);
             $sql="INSERT musaGenderTypes SET
@@ -116,13 +117,26 @@ class Country{
     public $country_name=null;
     public function __construct($i) {
         self::common_construct();
-
-        if(empty($i)) $i=[];
-        else if(!is_array($i)) $i=['name'=>$i];
-        if(empty($i['name'])) $i['name']='Okänd';
-        if(!empty($i['id'])) $this->country_id=$i['id'];
-        $this->country_name=$i['name'];
+        if(!empty($i)) {
+            if(!is_array($i)) {if(is_numeric($i)) $i=['country_id'=>$i]; else $i=['country_name'=>$i];}
+            foreach ($this->p2a($this) as $p) if(isset($i[$p])) $this->{$p}=$i[$p];
+            if(empty($this->country_id)) $this->find_id();
+            if(!empty($this->country_id)) $this->load();
+        }
     }
+    public function find_id(){
+        if(!empty($this->country_name)) {
+            $sql="SELECT * 
+            FROM musaCountries
+            WHERE country_name LIKE '%$this->country_name%'
+            ";      
+            //pa($sql);
+            $r=$this->db->getRecFrmQry($sql);  
+            //$r=$this->db->get('musaCountries',null,null,['country_name'=>$this->country_name]);
+            if(!empty($r[0]['country_id'])) $this->country_id=$r[0]['country_id'];
+        }
+    }
+
     public function store(){
         if(empty($this->country_id)){
             $sql="INSERT musaCountries SET
@@ -180,64 +194,39 @@ class Person {
     public function __construct($i=null,$gender=null,$country=null){
         self::common_construct();
 
-        if(empty($i)) $i=[];
-        else if(!is_array($i)) {
-            if(is_numeric($i)) $i=['person_id'=>$i];
-            else $i=['family_name'=>$i];
-        }
-
-        self::check_required($i,["person_id","family_name"]);
         $this->gender = New Gender($gender);
         $this->country = New Country($country);
-        foreach ($this->p2a($this) as $p) {
-            if(isset($i[$p])) $this->{$p}=$i[$p];
+        if(!empty($i)) {
+            if(!is_array($i)) {if(is_numeric($i)) $i=['person_id'=>$i]; else $i=['family_name'=>$i];}
+            foreach ($this->p2a($this) as $p) if(isset($i[$p])) $this->{$p}=$i[$p];
+            if(!empty($this->person_id)) $this->load();
         }
-
-        if(!empty($this->person_id)) $this->load();
     }
     
 
     public function store(){
+        $this->gender->store();
+        $this->country->store();
+        $rec=[];
+        $rec['family_name']=$this->family_name;
+        $rec['first_name']=$this->first_name;
+        $rec['gender_id']=$this->gender->gender_id;
+        $rec['country_id']=$this->country->country_id;
         if(empty($this->person_id)){
-            $this->gender->store();
-            $this->country->store();
-            self::pa($this);
-            $sql="INSERT musaPersons SET
-            family_name='$this->family_name',
-            first_name='$this->first_name',
-            gender_id='{$this->gender->gender_id}',
-            country_id={$this->country->country_id}
-            ";
-            $this->db->executeQry($sql);
+            $this->db->insert('musaPersons',$rec);
             $this->person_id=$this->db->lastInsertId();
             $this->object_modified=false;
         } else if($this->object_modified) { 
             // update
-            $this->gender->store();
-            $this->country->store();
-            $sql="UPDATE musaPersons SET
-            family_name='$this->family_name',
-            first_name='$this->first_name',
-            gender_id='$this->gender->gender_id',
-            country_id=$this->country->country_id
-            WHERE person_id=$this->person_id
-            ";
-            $this->db->executeQry($sql);
+            $this->db->update('musaPersons',$rec,['person_id'=>$this->person_id]);
             $this->object_modified=false;
         }
     }
 
     public function load($id=null){
-        self::pa("+++++++++++++++++++++++++",true);
-        self::pa($id);
-        self::pa($this);
         if(!empty($id)) $this->person_id=$id;
         if(!empty($this->person_id)){
-            $sql="SELECT * 
-            FROM musaPersons
-            WHERE person_id=$this->person_id
-            ";
-            $r=$this->db->getUniqueFrmQry($sql);
+            $r=$this->db->getUnique('musaPersons',['person_id'=>$this->person_id]);
             if(!empty($r)) {
                 foreach ($this->p2a($this) as $p) {
                     if(isset($r[$p])) $this->{$p}=$r[$p];
@@ -246,20 +235,25 @@ class Person {
 
             $this->gender->load($r['gender_id']);
             $this->country->load($r['country_id']);
-            self::pa($this);
+            //self::pa($this);
             $this->object_modified=false;
             return true;
         }
         return false;
     }
-    public static function list($lid){
-        pa($lid);
-        $l=[];
-        foreach($lid as $id){
-            $i=New self($id);
-            $i->load();
-            $l[]=$i;
+    public static function delete($id){
+        global $db;
+        if(!empty($id)) {
+            $r=$db->delete('musaMusic',['music_id'=>$id]);
+            self::pa($r);
+            return $r;
         }
+        return false;
+    }
+
+    public static function list($lid){
+        $l=[];
+        foreach($lid as $id) $l[]=New self($id);
         return $l;
     }
 }
@@ -291,28 +285,13 @@ class Music {
         self::common_construct();
         if(!empty($id)) $this->load($id);
     }
-/*
-    public function __construct($i=null,$composers=null,$authors=null) {
-        self::common_construct();
 
-        if(empty($i)) $i=[];
-        foreach (self::p2a($this) as $p) {
-            if(!empty($i[$p])) $this->{$p}=$i[$p];
-        }
-        if(!empty($composers)) $this->composers = $composers;
-        if(!empty($authors)) $this->authors = $authors;
-        foreach ($this->p2a($this) as $p) {
-            if(!empty(${$p})) $this->{$p} = ${$p};
-        }
-
-    }
-*/
     private function link_person($tn,$o){
         $sql="INSERT $tn SET
         music_id=$this->music_id,
         person_id='$o->person_id'
         ";
-        self::pa($sql);
+        //self::pa($sql);
         $this->db->executeQry($sql);
     }
 
@@ -324,15 +303,15 @@ class Music {
             ";
             $this->db->executeQry($sql);
             $this->music_id=$this->db->lastInsertId();
-            foreach($this->arrangers as $o){
+            if(!empty($this->arrangers)) foreach($this->arrangers as $o){
                 $o->store();
                 $this->link_person('musaMusicArrangers',$o);
             }
-            foreach($this->authors as $o){
+            if(!empty($this->authors)) foreach($this->authors as $o){
                 $o->store();
                 $this->link_person('musaMusicAuthors',$o);
             }
-            foreach($this->composers as $o){
+            if(!empty($this->composers)) foreach($this->composers as $o){
                 $o->store();
                 $this->link_person('musaMusicComposers',$o);
             }
@@ -385,6 +364,54 @@ class Music {
         return false;
     }
 
+    public static function delete($id){
+        global $db;
+        if(!empty($id)) {
+            $sql="DELETE FROM musaMusic
+            WHERE music_id=$id
+            ";
+            $r=$db->deleteFrmQry($sql);
+            self::pa($r);
+            return $r;
+        }
+        return false;
+    }
+
+    public static function list_all($search=null){
+        global $db;
+        $cols=["music_id","org_id","storage_id","choir_parts","solo_parts","title","subtitle","yearOfComp","movements","notes","serial_number","publisher",
+        "identifier",
+        "person_id","gender_id","country_id","family_name","first_name","date_born","date_dead"];
+        $cols=["title","subtitle","yearOfComp","movements","notes","publisher",
+        "comp.family_name","comp.first_name",
+        "arr.family_name","arr.first_name",
+        "auth.family_name","auth.first_name",
+        ];
+        //$cols=["title"];
+        //,"person_id","gender_id","country_id","family_name","first_name","date_born","date_dead"];
+        //$sql="SELECT *,musaMusic.*,musaOrgs.*,musaStorages.*
+        $sc=implode(",", $cols);
+        $sql="SELECT musaMusic.*
+        ,CONCAT_WS('#',$sc) as alla
+        FROM musaMusic
+        LEFT JOIN musaOrgs ON musaOrgs.org_id=musaMusic.org_id
+        LEFT JOIN musaStatusTypes ON musaStatusTypes.status_code=musaOrgs.status_code
+        LEFT JOIN musaStorages ON musaStorages.storage_id=musaMusic.storage_id
+        LEFT JOIN musaMusicComposers ON musaMusicComposers.music_id=musaMusic.music_id
+        LEFT JOIN musaPersons comp ON comp.person_id=musaMusicComposers.person_id
+        LEFT JOIN musaMusicArrangers ON musaMusicArrangers.music_id=musaMusic.music_id
+        LEFT JOIN musaPersons arr ON arr.person_id=musaMusicArrangers.person_id
+        LEFT JOIN musaMusicAuthors ON musaMusicAuthors.music_id=musaMusic.music_id
+        LEFT JOIN musaPersons auth ON auth.person_id=musaMusicAuthors.person_id
+        WHERE musaStatusTypes.status_hidden=0
+        ";
+        if(!empty($search)) $sql.="AND CONCAT_WS('#',$sc) LIKE '%$search%' ";
+        $sql.="GROUP BY musaMusic.music_id";
+        //pa($sql);
+        $r=$db->getRecFrmQry($sql);
+        //pcols($r);
+        return $r;
+    }
 }
 
 //------------------------------------------------------------------------------------
