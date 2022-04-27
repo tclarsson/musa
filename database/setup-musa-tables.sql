@@ -140,35 +140,6 @@ CONSTRAINT `FK_468` FOREIGN KEY `FK_470` (`storage_id`) REFERENCES `musaStorages
 );
 
 
-INSERT INTO `musa`.`musaMusic`
-(`music_id`,
-`org_id`,
-`storage_id`,
-`choir_parts`,
-`solo_parts`,
-`title`,
-`subtitle`,
-`yearOfComp`,
-`movements`,
-`notes`,
-`serial_number`,
-`publisher`,
-`identifier`)
-VALUES
-(1,
-2,
-1,
-1,
-1,
-'Dancing queen',
-'Dancing queen - version 0',
-1976,
-1,
-'Dancing queen & Dancing queen & Dancing queen',
-'abc123',
-'hardrock cafe',
-'IBSN:4546586lksdjf');
-
 
 # global table of categories, user gets to see/use own orgs used musaCategories
 CREATE TABLE IF NOT EXISTS `musaCategories`
@@ -204,9 +175,8 @@ CREATE TABLE IF NOT EXISTS `musaGenderTypes`
 
 PRIMARY KEY (`gender_id`)
 );
-INSERT musaGenderTypes (gender_id,gender_name) VALUES ('UNKNOWN','Okänd');
-INSERT musaGenderTypes (gender_id,gender_name) VALUES ('FEMALE','Kvinna');
-INSERT musaGenderTypes (gender_id,gender_name) VALUES ('MALE','Man');
+INSERT musaGenderTypes (gender_id,gender_name) VALUES ('F','Kvinna');
+INSERT musaGenderTypes (gender_id,gender_name) VALUES ('M','Man');
 
 # global table of categories, user gets to see/use own orgs used musaCategories
 CREATE TABLE IF NOT EXISTS `musaHolidays`
@@ -311,13 +281,13 @@ CONSTRAINT `FK_378` FOREIGN KEY `FK_380` (`person_id`) REFERENCES `musaPersons` 
 
 CREATE TABLE IF NOT EXISTS `musaMusicHolidays`
 (
- `holiday_id` integer NOT NULL ,
  `music_id`   integer NOT NULL ,
+ `holiday_id` integer NOT NULL ,
 
-KEY `FK_344` (`holiday_id`),
-CONSTRAINT `FK_342` FOREIGN KEY `FK_344` (`holiday_id`) REFERENCES `musaHolidays` (`holiday_id`) ON DELETE NO ACTION ON UPDATE CASCADE,
 KEY `FK_347` (`music_id`),
-CONSTRAINT `FK_345` FOREIGN KEY `FK_347` (`music_id`) REFERENCES `musaMusic` (`music_id`) ON DELETE CASCADE ON UPDATE CASCADE
+CONSTRAINT `FK_345` FOREIGN KEY `FK_347` (`music_id`) REFERENCES `musaMusic` (`music_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+KEY `FK_344` (`holiday_id`),
+CONSTRAINT `FK_342` FOREIGN KEY `FK_344` (`holiday_id`) REFERENCES `musaHolidays` (`holiday_id`) ON DELETE NO ACTION ON UPDATE CASCADE
 );
 
 
@@ -335,25 +305,25 @@ CONSTRAINT `FK_313` FOREIGN KEY `FK_315` (`instrument_id`) REFERENCES `musaInstr
 
 CREATE TABLE IF NOT EXISTS `musaMusicLanguages`
 (
- `language_id` integer NOT NULL ,
  `music_id`    integer NOT NULL ,
+ `language_id` integer NOT NULL ,
 
-KEY `FK_356` (`language_id`),
-CONSTRAINT `FK_354` FOREIGN KEY `FK_356` (`language_id`) REFERENCES `musaLanguages` (`language_id`) ON DELETE NO ACTION ON UPDATE CASCADE,
 KEY `FK_359` (`music_id`),
-CONSTRAINT `FK_357` FOREIGN KEY `FK_359` (`music_id`) REFERENCES `musaMusic` (`music_id`) ON DELETE CASCADE ON UPDATE CASCADE
+CONSTRAINT `FK_357` FOREIGN KEY `FK_359` (`music_id`) REFERENCES `musaMusic` (`music_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+KEY `FK_356` (`language_id`),
+CONSTRAINT `FK_354` FOREIGN KEY `FK_356` (`language_id`) REFERENCES `musaLanguages` (`language_id`) ON DELETE NO ACTION ON UPDATE CASCADE
 );
 
 
 CREATE TABLE IF NOT EXISTS `musaMusicThemes`
 (
- `theme_id` integer NOT NULL ,
  `music_id` integer NOT NULL ,
+ `theme_id` integer NOT NULL ,
 
-KEY `FK_333` (`theme_id`),
-CONSTRAINT `FK_331` FOREIGN KEY `FK_333` (`theme_id`) REFERENCES `musaThemes` (`theme_id`) ON DELETE NO ACTION ON UPDATE CASCADE,
 KEY `FK_336` (`music_id`),
-CONSTRAINT `FK_334` FOREIGN KEY `FK_336` (`music_id`) REFERENCES `musaMusic` (`music_id`) ON DELETE CASCADE ON UPDATE CASCADE
+CONSTRAINT `FK_334` FOREIGN KEY `FK_336` (`music_id`) REFERENCES `musaMusic` (`music_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+KEY `FK_333` (`theme_id`),
+CONSTRAINT `FK_331` FOREIGN KEY `FK_333` (`theme_id`) REFERENCES `musaThemes` (`theme_id`) ON DELETE NO ACTION ON UPDATE CASCADE
 );
 
 

@@ -53,70 +53,6 @@ trait music_common {
             $this->{$p}=$p;
         }
     }
-    //-----------------------------------------------------------------
-    //-----------------------------------------------------------------
-    //-----------------------------------------------------------------
-    private function _params2props($pid,$pdef,$i=null) {
-        if(!empty($i)) {
-            if(!is_array($i)) {if(is_numeric($i)) $i=[$pid=>$i]; else $i=[$pdef=>$i];}
-            foreach ($this->p2a($this) as $p) if(isset($i[$p])) $this->{$p}=$i[$p];
-            if(empty($this->{$pid})) $this->like();            
-            if(!empty($this->{$pid})) $this->load();
-        }
-    }
-    private function _like($tn,$pid,$lp){
-        if(!empty($this->{$lp})) {
-            $sql="SELECT $pid
-            FROM $tn
-            WHERE $lp LIKE '".$this->{$lp}."'";      
-            $r=$this->db->getColFrmQry($sql);  
-            if(!empty($r[0])) $this->{$pid}=$r[0];
-        }
-    }
-
-    private function _store($tn,$pid,$tpl,$force=false){
-        if(empty($this->{$pid})) $this->like();
-        $rec=[];foreach ($tpl as $p) if(!empty($this->{$p})) $rec[$p]=$this->{$p};
-        if(!empty($rec)) {
-            if(empty($this->{$pid})){
-                $this->db->insert($tn,$rec);
-                $this->{$pid}=$this->db->lastInsertId();
-            } else if($this->object_modified||$force) { 
-                $this->db->update($tn,$rec,[$pid=>$this->{$pid}]);
-            }
-        }
-        $this->object_modified=false;
-    }
-
-    private function _load($tn,$pid,$id=null){
-        if(!empty($id)) $this->{$pid}=$id;
-        if(!empty($this->{$pid})){
-            $r=$this->db->getUnique($tn,[$pid=>$this->{$pid}]);
-            if(!empty($r)) {
-                foreach ($this->p2a($this) as $p) {
-                    if(isset($r[$p])) $this->{$p}=$r[$p];
-                }
-            }
-            $this->object_modified=false;
-            return true;
-        }
-        return false;
-    }
-
-    private static function _delete($tn,$pid,$id){
-        global $db;
-        if(!empty($id)) {
-            $r=$db->delete($tn,[$pid=>$id]);
-            return true;
-        }
-        return false;
-    }    
-    private static function _list_all($tn){
-        global $db;
-        $r=$db->getAllRecords($tn);
-        return $r;
-    }
-
 }
 
 //------------------------------------------------------------------------------------
@@ -247,50 +183,6 @@ class Country{
         $o=New self('Sverige');self::ass($o->country_id!=null);
         $o=New self('SvErige');self::ass($o->country_id!=null);self::pa($o->json());
         //self::pa(self::list_all());
-        self::pa(__CLASS__." class test performed.\n---------------------------------------------------------------------------");
-    }
-
-}
-
-
-//------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------
-class Holiday{
-    use music_common;
-    const TABLE_MAIN='musaHolidays';
-    const TABLE_KEY='holiday_id';
-    const TABLE_LIKE='holiday_name';
-    const TABLE_PROPS=['holiday_name'];
-
-    public $holiday_id=null;
-    public $holiday_name=null;
-    public function __construct($i=null) {
-        self::common_construct();
-        $this->_params2props(self::TABLE_KEY,self::TABLE_LIKE,$i);
-    }
-    private function like(){
-        $this->_like(self::TABLE_MAIN,self::TABLE_KEY,self::TABLE_LIKE);
-    }
-    public function store($force=false){
-        $this->_store(self::TABLE_MAIN,self::TABLE_KEY,self::TABLE_PROPS,$force);
-    }
-    public function load($id=null){
-        $this->load(self::TABLE_MAIN,self::TABLE_KEY,$id);
-    }
-    public static function delete($id){
-        self::_delete(self::TABLE_MAIN,self::TABLE_KEY,$id);
-    }
-    public static function list_all(){
-        self::_list_all(self::TABLE_MAIN);
-    }
-
-    public static function _test(){
-        self::pa("---------------------------------------------------------------------------\n".__CLASS__." class test started.");
-        $o=New self('TestTest');self::pa($o->json());
-        $o->store();self::ass($o->{self::TABLE_KEY}!=null);self::pa($o->json());
-        self::pa(self::list_all());
-        self::delete($o->{self::TABLE_KEY});
-        self::pa(self::list_all());
         self::pa(__CLASS__." class test performed.\n---------------------------------------------------------------------------");
     }
 
@@ -576,26 +468,13 @@ class Music {
 
     public static function _test(){
         self::pa("---------------------------------------------------------------------------\n".__CLASS__." class test started.");
+        $p=New Person("Person1",'kvinna','testland');
         $o=New Music;
         $o->org_id=2;
-        $o->title="TestSong";
-        $o->subtitle="TestSub";
-        $o->yearOfComp=1987;
-        $o->movements=null;
-        $o->notes=null;
-        $o->serial_number=null;
-        $o->publisher=null;
-        $o->identifier=null;
-        $o->storage_id=null;
-        $o->choir_parts=null;
-        $o->solo_parts=null;
-
+        $o->title="Happy";$o->mod();
         $o->arrangers=[New Person("arr1"),New Person("arr2",'MALE')];
-        $p=New Person("Person1",'kvinna','testland');
         $o->composers=[$p];
-        $o->authors=[New Person("Larsson",'MALE','Sverige'),New Person("Erik"),$p];
-        $o->categories;
-   
+        $o->authors=[New Person("Larsson",'MALE','Sverige'),New Person("Erik")];
         self::pa($o->json());
         $o->store();self::pa($o->json());
         self::delete($o->music_id);

@@ -267,33 +267,6 @@ class Database{
      * @param  array  $where     (associative where key is field name)
      * @return int    number of affected rows
      */
-/*
-     public function updateS($tableName, array $set, array $where)
-    {
-        $arrSet = array_map(
-           function($value) {
-                return $value . '=:' . $value;
-           },
-           array_keys($set)
-         );
-             
-        $stmt = $this->pdo->prepare(
-            "UPDATE $tableName SET ". implode(',', $arrSet).' WHERE '. key($where). '=:'. key($where) . 'Field'
-         );
- 
-        foreach ($set as $field => $value) {
-            $stmt->bindValue(':'.$field, $value);
-        }
-        $stmt->bindValue(':'.key($where) . 'Field', current($where));
-        try {
-            $stmt->execute();
- 
-            return $stmt->rowCount();
-        } catch (\PDOException $e) {
-            throw new \RuntimeException("[".$e->getCode()."] : ". $e->getMessage());
-        }
-    }
- */
     public function update($tableName, array $set, array $where)
     {
         $arrSet = array_map(
@@ -315,6 +288,34 @@ class Database{
         try {
             //pa($sql);
             //pa(array_merge($set,$where));
+            $stmt->execute(array_merge($set,$where));
+            return $stmt->rowCount();
+        } catch (\PDOException $e) {
+            throw new \RuntimeException("[".$e->getCode()."] : ". $e->getMessage());
+        }
+    }
+
+    public function insertupdate($tableName, array $set, array $where)
+    {
+        $arrSet = array_map(
+           function($value) {
+                return $value . '=:' . $value;
+           },
+           array_keys($set)
+        );
+             
+        $arrWhere = array_map(
+        function($value) {
+                return $value . '=:' . $value;
+        },
+        array_keys($where)
+        );
+            
+        $sql="INSERT $tableName SET ".implode(',', array_merge($arrWhere, $arrSet))."
+        ON DUPLICATE KEY UPDATE ".implode(',', $arrSet);
+        $stmt = $this->pdo->prepare($sql);
+        try {
+            pa($sql);
             $stmt->execute(array_merge($set,$where));
             return $stmt->rowCount();
         } catch (\PDOException $e) {
