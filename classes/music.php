@@ -36,8 +36,14 @@ trait music_common {
         }
         print('</pre>');
     }
-    protected static function ass($t){
-        if(!$t) self::pa('Test failed.',true);
+    protected static function ass($exp){
+        if($exp===false) $exp="false";
+        eval('$t='."$exp;");
+        if(!$t) {
+            $v=debug_backtrace()[0];
+            print("<h1>Assert of [$exp] failed at line: $v[line] in ".basename($v['file'])."</h1>
+            ");
+        }
     }
 
     public function check_required($prop,$or) {
@@ -56,42 +62,48 @@ trait music_common {
     //-----------------------------------------------------------------
     //-----------------------------------------------------------------
     //-----------------------------------------------------------------
-    private function _params2props($pid,$pdef,$i=null) {
+    public function _params2props($i=null) {
         if(!empty($i)) {
-            if(!is_array($i)) {if(is_numeric($i)) $i=[$pid=>$i]; else $i=[$pdef=>$i];}
+            if(!is_array($i)) {if(is_numeric($i)) $i=[self::TABLE_KEY=>$i]; else $i=[self::TABLE_LIKE=>$i];}
             foreach ($this->p2a($this) as $p) if(isset($i[$p])) $this->{$p}=$i[$p];
-            if(empty($this->{$pid})) $this->like();            
-            if(!empty($this->{$pid})) $this->load();
+            if(empty($this->{self::TABLE_KEY})) $this->like();            
+            if(!empty($this->{self::TABLE_KEY})) $this->load();
         }
     }
-    private function _like($tn,$pid,$lp){
-        if(!empty($this->{$lp})) {
-            $sql="SELECT $pid
-            FROM $tn
-            WHERE $lp LIKE '".$this->{$lp}."'";      
+    public function key(){
+        return [self::TABLE_KEY=>$this->{self::TABLE_KEY}];
+    }
+    public function like(){
+        if(!empty($this->{self::TABLE_LIKE})) {
+            $sql="SELECT ".self::TABLE_KEY."
+            FROM ".self::TABLE_MAIN."
+            WHERE ".self::TABLE_LIKE." LIKE '".$this->{self::TABLE_LIKE}."'";      
             $r=$this->db->getColFrmQry($sql);  
-            if(!empty($r[0])) $this->{$pid}=$r[0];
+            if(!empty($r[0])) $this->{self::TABLE_KEY}=$r[0];
         }
     }
 
-    private function _store($tn,$pid,$tpl,$force=false){
-        if(empty($this->{$pid})) $this->like();
-        $rec=[];foreach ($tpl as $p) if(!empty($this->{$p})) $rec[$p]=$this->{$p};
+    public function store($force=false){
+        if(empty($this->{self::TABLE_KEY})) $this->like();
+        $rec=[];
+        foreach (self::TABLE_PROPS as $p) if(!empty($this->{$p})) $rec[$p]=$this->{$p};
         if(!empty($rec)) {
-            if(empty($this->{$pid})){
-                $this->db->insert($tn,$rec);
-                $this->{$pid}=$this->db->lastInsertId();
+            if(empty($this->{self::TABLE_KEY})){
+                $this->db->insert(self::TABLE_MAIN,$rec);
+                $this->{self::TABLE_KEY}=$this->db->lastInsertId();
             } else if($this->object_modified||$force) { 
-                $this->db->update($tn,$rec,[$pid=>$this->{$pid}]);
+                $this->db->update(self::TABLE_MAIN,$rec,[self::TABLE_KEY=>$this->{self::TABLE_KEY}]);
             }
         }
         $this->object_modified=false;
+        return $this->key();
+
     }
 
-    private function _load($tn,$pid,$id=null){
-        if(!empty($id)) $this->{$pid}=$id;
-        if(!empty($this->{$pid})){
-            $r=$this->db->getUnique($tn,[$pid=>$this->{$pid}]);
+    public function load($id=null){
+        if(!empty($id)) $this->{self::TABLE_KEY}=$id;
+        if(!empty($this->{self::TABLE_KEY})){
+            $r=$this->db->getUnique(self::TABLE_MAIN,[self::TABLE_KEY=>$this->{self::TABLE_KEY}]);
             if(!empty($r)) {
                 foreach ($this->p2a($this) as $p) {
                     if(isset($r[$p])) $this->{$p}=$r[$p];
@@ -103,19 +115,46 @@ trait music_common {
         return false;
     }
 
-    private static function _delete($tn,$pid,$id){
+    public static function delete($id){
         global $db;
         if(!empty($id)) {
-            $r=$db->delete($tn,[$pid=>$id]);
+            $r=$db->delete(self::TABLE_MAIN,[self::TABLE_KEY=>$id]);
             return true;
         }
         return false;
     }    
-    private static function _list_all($tn){
+    public static function list_all(){
         global $db;
-        $r=$db->getAllRecords($tn);
+        $r=$db->getAllRecords(self::TABLE_MAIN);
         return $r;
+
     }
+    public static function music_list($tn,$mid){
+        global $db;
+        $sql="SELECT ".self::TABLE_KEY." FROM $tn WHERE music_id=$mid";
+        $r=$this->db->getColFrmQry($sql);
+        if(!empty($r)) {
+            $l=[];
+            foreach($lid as $id) $l[]=New self($id);
+            return $l;
+        }
+        return null;
+    }
+
+    private static function _test_std(){
+        self::pa("---------------------------------------------------------------------------\n".__CLASS__." class test started.");
+        //self::pa(self::list_all());
+        $o=New self();self::ass($o->{self::TABLE_KEY}==null);self::pa($o->json());
+        $o=New self(__CLASS__.__CLASS__);self::ass($o->{self::TABLE_KEY}==null);self::pa($o->json());
+        $o->store();self::ass($o->{self::TABLE_KEY}!=null);self::pa($o->json());
+        $o2=New self($o->{self::TABLE_KEY});self::pa($o2->json());
+        $o3=New self(__CLASS__.__CLASS__);self::ass($o3->{self::TABLE_KEY}!=null);self::pa($o3->json());
+        //self::pa(self::list_all());
+        self::delete($o->{self::TABLE_KEY});
+        //self::pa(self::list_all());
+        self::pa(__CLASS__." class test performed.\n---------------------------------------------------------------------------");
+    }
+
 
 }
 
@@ -123,6 +162,11 @@ trait music_common {
 //------------------------------------------------------------------------------------
 class Gender{
     use music_common;
+    const TABLE_MAIN='musaGenderTypes';
+    const TABLE_KEY='gender_id';
+    const TABLE_LIKE='gender_name';
+    const TABLE_PROPS=['gender_name'];
+
     //const TABLE_MAIN='musaGenderTypes';
 
     public $gender_id=null;
@@ -130,7 +174,6 @@ class Gender{
     public function __construct($i=null) {
         self::common_construct();
         $this->load($i);
-        $this->json();
     }
 
     public function load($i=null){
@@ -148,16 +191,25 @@ class Gender{
         $this->object_modified=false;
     }
 
+    public static function delete($id){
+        // disable delete
+        return;
+    }
+
     public function store(){
         $this->object_modified=false;
+        return [self::TABLE_KEY=>$this->{self::TABLE_KEY}];
     }
 
     public static function _test(){
+        //self::_test_std();
+
         self::pa("---------------------------------------------------------------------------\n".__CLASS__." class test started.");
         $o=New self();self::pa($o->json());self::ass($o->gender_id==null);self::ass($o->gender_name==null);
         $o=New self('Man');self::pa($o->json());self::ass($o->gender_id=='M');self::ass($o->gender_name=='Man');
         $o=New self('kVinna');self::ass($o->gender_id=='F');self::ass($o->gender_name=='Kvinna');
-        $o=New self('kjsdhgfna');self::ass($o->gender_id=='F');self::ass($o->gender_name=='Kvinna');
+        self::delete('F');
+        $o=New self('kjsdhgfna');self::ass($o->gender_id==null);self::ass($o->gender_name==null);
         $o=New self();self::ass(empty($o->gender_id));self::ass(empty($o->gender_name));
         self::pa(__CLASS__." class test performed.\n---------------------------------------------------------------------------");
     }
@@ -170,86 +222,20 @@ class Gender{
 class Country{
     use music_common;
     const TABLE_MAIN='musaCountries';
+    const TABLE_KEY='country_id';
+    const TABLE_LIKE='country_name';
     const TABLE_PROPS=['country_name'];
-
 
     public $country_id=null;
     public $country_name=null;
-    public function __construct($i) {
+    public function __construct($i=null) {
         self::common_construct();
-        if(!empty($i)) {
-            if(!is_array($i)) {if(is_numeric($i)) $i=['country_id'=>$i]; else $i=['country_name'=>$i];}
-            foreach ($this->p2a($this) as $p) if(isset($i[$p])) $this->{$p}=$i[$p];
-            if(empty($this->country_id)) $this->like();            
-            if(!empty($this->country_id)) $this->load();
-        }
-    }
-    private function like(){
-        if(!empty($this->country_name)) {
-            $sql="SELECT country_id 
-            FROM ".self::TABLE_MAIN."
-            WHERE country_name LIKE '%$this->country_name%'
-            ";      
-            $r=$this->db->getColFrmQry($sql);  
-            if(!empty($r[0])) $this->country_id=$r[0];
-        }
-    }
-
-    public function store($force=false){
-        if(empty($this->country_id)) $this->like();
-        $rec=[];foreach (self::TABLE_PROPS as $p) if(!empty($this->{$p})) $rec[$p]=$this->{$p};
-        if(!empty($rec)) {
-            if(empty($this->country_id)){
-                $this->db->insert(self::TABLE_MAIN,$rec);
-                $this->country_id=$this->db->lastInsertId();
-            } else if($this->object_modified||$force) { 
-                $this->db->update(self::TABLE_MAIN,$rec,['country_id'=>$this->country_id]);
-            }
-        }
-        $this->object_modified=false;
-    }
-
-    public function load($id=null){
-        if(!empty($id)) $this->country_id=$id;
-        if(!empty($this->country_id)){
-            $r=$this->db->getUnique(self::TABLE_MAIN,['country_id'=>$this->country_id]);
-            if(!empty($r)) {
-                foreach ($this->p2a($this) as $p) {
-                    if(isset($r[$p])) $this->{$p}=$r[$p];
-                }
-            }
-            $this->object_modified=false;
-            return true;
-        }
-        return false;
-    }
-
-    public static function delete($id){
-        global $db;
-        if(!empty($id)) {
-            $r=$db->delete(self::TABLE_MAIN,['country_id'=>$id]);
-            return true;
-        }
-        return false;
-    }
-
-    public static function list_all(){
-        global $db;
-        $r=$db->getAllRecords(self::TABLE_MAIN);
-        return $r;
+        $this->_params2props($i);
     }
 
     public static function _test(){
-        self::pa("---------------------------------------------------------------------------\n".__CLASS__." class test started.");
-        $o=New self('GGGG');$o->store();self::ass($o->country_id!=null);self::pa($o);
-        self::delete($o->country_id);
-        $o=New self('GGGG');self::ass($o->country_id==null);
-        $o=New self('Sverige');self::ass($o->country_id!=null);
-        $o=New self('SvErige');self::ass($o->country_id!=null);self::pa($o->json());
-        //self::pa(self::list_all());
-        self::pa(__CLASS__." class test performed.\n---------------------------------------------------------------------------");
+        self::_test_std();
     }
-
 }
 
 
@@ -264,34 +250,183 @@ class Holiday{
 
     public $holiday_id=null;
     public $holiday_name=null;
+    
     public function __construct($i=null) {
         self::common_construct();
-        $this->_params2props(self::TABLE_KEY,self::TABLE_LIKE,$i);
-    }
-    private function like(){
-        $this->_like(self::TABLE_MAIN,self::TABLE_KEY,self::TABLE_LIKE);
-    }
-    public function store($force=false){
-        $this->_store(self::TABLE_MAIN,self::TABLE_KEY,self::TABLE_PROPS,$force);
-    }
-    public function load($id=null){
-        $this->load(self::TABLE_MAIN,self::TABLE_KEY,$id);
-    }
-    public static function delete($id){
-        self::_delete(self::TABLE_MAIN,self::TABLE_KEY,$id);
-    }
-    public static function list_all(){
-        self::_list_all(self::TABLE_MAIN);
+        $this->_params2props($i);
     }
 
     public static function _test(){
-        self::pa("---------------------------------------------------------------------------\n".__CLASS__." class test started.");
-        $o=New self('TestTest');self::pa($o->json());
-        $o->store();self::ass($o->{self::TABLE_KEY}!=null);self::pa($o->json());
-        self::pa(self::list_all());
-        self::delete($o->{self::TABLE_KEY});
-        self::pa(self::list_all());
-        self::pa(__CLASS__." class test performed.\n---------------------------------------------------------------------------");
+        self::_test_std();
+    }
+
+}
+
+
+//------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------
+class Category{
+    use music_common;
+    const TABLE_MAIN='musaCategories';
+    const TABLE_KEY='category_id';
+    const TABLE_LIKE='category_name';
+    const TABLE_PROPS=['category_name'];
+
+    public $category_id=null;
+    public $category_name=null;
+    
+    public function __construct($i=null) {
+        self::common_construct();
+        $this->_params2props($i);
+    }
+
+    public static function _test(){
+        self::_test_std();
+    }
+
+}
+
+
+//------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------
+class Instrument{
+    use music_common;
+    const TABLE_MAIN='musaInstruments';
+    const TABLE_KEY='instrument_id';
+    const TABLE_LIKE='instrument_name';
+    const TABLE_PROPS=['instrument_name'];
+
+    public $instrument_id=null;
+    public $instrument_name=null;
+    
+    public function __construct($i=null) {
+        self::common_construct();
+        $this->_params2props($i);
+    }
+
+    public static function _test(){
+        self::_test_std();
+    }
+
+}
+
+
+//------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------
+class Language{
+    use music_common;
+    const TABLE_MAIN='musaLanguages';
+    const TABLE_KEY='language_id';
+    const TABLE_LIKE='language_name';
+    const TABLE_PROPS=['language_name'];
+
+    public $language_id=null;
+    public $language_name=null;
+    
+    public function __construct($i=null) {
+        self::common_construct();
+        $this->_params2props($i);
+    }
+
+    public static function _test(){
+        self::_test_std();
+    }
+
+}
+
+
+//------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------
+class ChoirVoice{
+    use music_common;
+    const TABLE_MAIN='musaChoirVoices';
+    const TABLE_KEY='choir_voice_id';
+    const TABLE_LIKE='choir_voice_name';
+    const TABLE_PROPS=['choir_voice_name'];
+
+    public $choir_voice_id=null;
+    public $choir_voice_name=null;
+    
+    public function __construct($i=null) {
+        self::common_construct();
+        $this->_params2props($i);
+    }
+
+    public static function _test(){
+        self::_test_std();
+    }
+
+}
+
+
+//------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------
+class SoloVoice{
+    use music_common;
+    const TABLE_MAIN='musaSoloVoices';
+    const TABLE_KEY='solo_voice_id';
+    const TABLE_LIKE='solo_voice_name';
+    const TABLE_PROPS=['solo_voice_name'];
+
+    public $solo_voice_id=null;
+    public $solo_voice_name=null;
+    
+    public function __construct($i=null) {
+        self::common_construct();
+        $this->_params2props($i);
+    }
+
+    public static function _test(){
+        self::_test_std();
+    }
+
+}
+
+
+//------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------
+class Theme{
+    use music_common;
+    const TABLE_MAIN='musaThemes';
+    const TABLE_KEY='theme_id';
+    const TABLE_LIKE='theme_name';
+    const TABLE_PROPS=['theme_name'];
+
+    public $theme_id=null;
+    public $theme_name=null;
+    
+    public function __construct($i=null) {
+        self::common_construct();
+        $this->_params2props($i);
+    }
+
+    public static function _test(){
+        self::_test_std();
+    }
+
+}
+
+
+//------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------
+class Storage{
+    use music_common;
+    const TABLE_MAIN='musaStorages';
+    const TABLE_KEY='storage_id';
+    const TABLE_LIKE='storage_name';
+    const TABLE_PROPS=['org_id','storage_name'];
+
+    public $storage_id=null;
+    public $org_id=null;
+    public $storage_name=null;
+    
+    public function __construct($i=null) {
+        self::common_construct();
+        $this->_params2props($i);
+    }
+
+    public static function _test(){
+        self::_test_std();
     }
 
 }
@@ -302,8 +437,10 @@ class Holiday{
 class Person {
     use music_common;
     const TABLE_MAIN='musaPersons';
-    const TABLE_COLS_PROPS=['gender_id', 'country_id', 'family_name', 'first_name', 'date_born', 'date_dead'];
+    const TABLE_KEY='person_id';
+    const TABLE_LIKE='family_name';
     const TABLE_PROPS=['family_name', 'first_name', 'date_born', 'date_dead'];
+    const TABLE_COLS_PROPS=['gender_id', 'country_id', 'family_name', 'first_name', 'date_born', 'date_dead'];
 
 
     public $person_id = null;
@@ -316,15 +453,9 @@ class Person {
 
     public function __construct($i=null,$gender=null,$country=null){
         self::common_construct();
-
         $this->gender = New Gender($gender);
         $this->country = New Country($country);
-        if(!empty($i)) {
-            if(!is_array($i)) {if(is_numeric($i)) $i=['person_id'=>$i]; else $i=['family_name'=>$i];}
-            foreach ($this->p2a($this) as $p) if(isset($i[$p])) $this->{$p}=$i[$p];
-            if(empty($this->person_id)) $this->like();            
-            if(!empty($this->person_id)) $this->load();
-        }
+        $this->_params2props($i);
     }
 
     private static function lh($p,$c){
@@ -332,7 +463,7 @@ class Person {
         return "";
     }
     private function like(){
-        $sql="SELECT person_id 
+        $sql="SELECT ".self::TABLE_KEY." 
         FROM ".self::TABLE_MAIN."
         WHERE 1 ";
         foreach (self::TABLE_PROPS as $p) $sql.=self::lh($this->{$p},$p);
@@ -341,31 +472,31 @@ class Person {
         //pa($sql);
         $r=$this->db->getColFrmQry($sql);  
         //pa($r);
-        if(!empty($r[0])) $this->person_id=$r[0];
+        if(!empty($r[0])) $this->{self::TABLE_KEY}=$r[0];
     }
 
     public function store($force=false){
-        if(empty($this->person_id)) $this->like();
-        $this->gender->store();
-        $this->country->store();
-        $rec=[];foreach (self::TABLE_PROPS as $p) if(!empty($this->{$p})) $rec[$p]=$this->{$p};
-        $rec['gender_id']=$this->gender->gender_id;
-        $rec['country_id']=$this->country->country_id;
+        if(empty($this->{self::TABLE_KEY})) $this->like();
+        $rec=[];
+        $rec['gender_id']=$this->gender->store();
+        $rec['country_id']=$this->country->store();
+        foreach (self::TABLE_PROPS as $p) if(!empty($this->{$p})) $rec[$p]=$this->{$p};
         if(!empty($rec)) {
-            if(empty($this->person_id)){
+            if(empty($this->{self::TABLE_KEY})){
                 $this->db->insert(self::TABLE_MAIN,$rec);
-                $this->person_id=$this->db->lastInsertId();
+                $this->{self::TABLE_KEY}=$this->db->lastInsertId();
             } else if($this->object_modified||$force) { 
-                $this->db->update(self::TABLE_MAIN,$rec,['person_id'=>$this->person_id]);
+                $this->db->update(self::TABLE_MAIN,$rec,[self::TABLE_KEY=>$this->{self::TABLE_KEY}]);
             }
         }
         $this->object_modified=false;
+        return $this->key();
     }
 
     public function load($id=null){
-        if(!empty($id)) $this->person_id=$id;
-        if(!empty($this->person_id)){
-            $r=$this->db->getUnique(self::TABLE_MAIN,['person_id'=>$this->person_id]);
+        if(!empty($id)) $this->{self::TABLE_KEY}=$id;
+        if(!empty($this->{self::TABLE_KEY})){
+            $r=$this->db->getUnique(self::TABLE_MAIN,[self::TABLE_KEY=>$this->{self::TABLE_KEY}]);
             if(!empty($r)) foreach ($this->p2a($this) as $p) if(isset($r[$p])) $this->{$p}=$r[$p];
             if(!empty($r['gender_id'])) $this->gender->load($r['gender_id']);
             if(!empty($r['country_id'])) $this->country->load($r['country_id']);
@@ -374,24 +505,11 @@ class Person {
         }
         return false;
     }
-    public static function delete($id){
-        global $db;
-        if(!empty($id)) {
-            $r=$db->delete(self::TABLE_MAIN,['person_id'=>$id]);
-            return $r;
-        }
-        return false;
-    }
 
     public static function list($lid){
         $l=[];
         foreach($lid as $id) $l[]=New self($id);
         return $l;
-    }
-    public static function list_all(){
-        global $db;
-        $r=$db->getAllRecords(self::TABLE_MAIN);
-        return $r;
     }
 
     public static function _test(){
@@ -422,7 +540,9 @@ class Person {
 class Music {
     use music_common;
     const TABLE_MAIN='musaMusic';
-
+    const TABLE_KEY='music_id';
+    const TABLE_LIKE='title';
+    const TABLE_PROPS=['org_id', 'storage_id', 'choir_parts', 'solo_parts', 'title', 'subtitle', 'yearOfComp', 'movements', 'notes', 'serial_number', 'publisher', 'identifier'];
 
     public $music_id=null;
     public $org_id=null;
@@ -434,60 +554,65 @@ class Music {
     public $serial_number=null;
     public $publisher=null;
     public $identifier=null;
+    //relations
     public $storage_id=null;
     public $choir_parts=null;
     public $solo_parts=null;
+    // lists
     public $arrangers;
     public $authors;
-    public $categories;
     public $composers;
+    public $categories;
+    public $themes;
+    public $languages;
+    public $instruments;
+    public $holidays;
+    public $songsolos;
+
+
     
-    public function __construct($id=null) {
+    public function __construct($i=null) {
         self::common_construct();
-        if(!empty($id)) $this->load($id);
+        $this->_params2props($i);
     }
 
-    private function link_person($tn,$o){
-        $sql="INSERT $tn SET
-        music_id=$this->music_id,
-        person_id='$o->person_id'
-        ";
-        //self::pa($sql);
-        $this->db->executeQry($sql);
+    private function list_store($tn,$l){
+        if(!empty($l)) foreach($l as $o){
+            $rec=[self::TABLE_KEY=>$this->{self::TABLE_KEY}];
+            $rec+=$o->store();
+            $this->db->insert($tn,$rec);
+        }        
     }
 
     public function store(){
-        if(empty($this->music_id)){
-            $sql="INSERT musaMusic SET
-            org_id=$this->org_id,
-            title='$this->title'
-            ";
-            $this->db->executeQry($sql);
-            $this->music_id=$this->db->lastInsertId();
-            if(!empty($this->arrangers)) foreach($this->arrangers as $o){
-                $o->store();
-                $this->link_person('musaMusicArrangers',$o);
+        $rec=[];
+        $rec+=$this->storage_id->store();
+        $rec+=$this->choir_parts->store();
+        $rec+=$this->solo_parts->store();
+
+        foreach (self::TABLE_PROPS as $p) if(!empty($this->{$p})) $rec[$p]=$this->{$p};
+        if(!empty($rec)) {
+            if(empty($this->{self::TABLE_KEY})){
+                $this->db->insert(self::TABLE_MAIN,$rec);
+                $this->{self::TABLE_KEY}=$this->db->lastInsertId();
+            } else if($this->object_modified||$force) { 
+                $this->db->update(self::TABLE_MAIN,$rec,[self::TABLE_KEY=>$this->{self::TABLE_KEY}]);
             }
-            if(!empty($this->authors)) foreach($this->authors as $o){
-                $o->store();
-                $this->link_person('musaMusicAuthors',$o);
-            }
-            if(!empty($this->composers)) foreach($this->composers as $o){
-                $o->store();
-                $this->link_person('musaMusicComposers',$o);
-            }
-            $this->object_modified=false;
-        } else if($this->object_modified) { 
-            // update
-            $sql="UPDATE musaMusic SET
-            org_id=$this->org_id,
-            title='$this->title'
-            WHERE music_id=$this->music_id
-            ";
-            $this->db->executeQry($sql);
             $this->object_modified=false;
         }
-        return $this->music_id;
+        // store lists
+        $this->list_store('musaMusicComposers',$this->composers);
+        $this->list_store('musaMusicArrangers',$this->arrangers);
+        $this->list_store('musaMusicAuthors',$this->authors);
+        $this->list_store('musaMusicCategories',$this->categories);
+        $this->list_store('musaMusicThemes',$this->themes);
+        $this->list_store('musaMusicLanguages',$this->languages);
+        $this->list_store('musaMusicInstruments',$this->instruments);
+        $this->list_store('musaMusicHolidays',$this->holidays);
+        $this->list_store('musaMusicSongsolos',$this->songsolos);
+    
+        return $this->key();
+
     }
 
     private function list_persons($tn){
@@ -502,20 +627,48 @@ class Music {
         return [];
     }
 
+    private function list_load($tn,$on,$ln){
+        $key={$on}::keyname();
+        $sql="SELECT $key FROM $tn WHERE ".self::TABLE_KEY."=".$this->{self::TABLE_KEY};
+        $r=$this->db->getColFrmQry($sql);
+        if(!empty($r)) {
+
+        if(!empty($l)) foreach($l as $o){
+            $rec=[self::TABLE_KEY=>$this->{self::TABLE_KEY}];
+            $rec+=$o->store();
+            $this->db->insert($tn,$rec);
+        }        
+    }
+
 
     public function load($id=null){
-        if(!empty($id)) $this->music_id=$id;
-        if(!empty($this->music_id)){
-            $sql="SELECT * 
-            FROM musaMusic
-            WHERE music_id=$this->music_id
-            ";
-            $r=$this->db->getUniqueFrmQry($sql);
-            if(!empty($r)) {
-                foreach ($this->p2a($this) as $p) {
-                    if(isset($r[$p])) $this->{$p}=$r[$p];
-                }
-            }
+        if(!empty($id)) $this->{self::TABLE_KEY}=$id;
+        if(!empty($this->{self::TABLE_KEY})){
+            $r=$this->db->getUnique(self::TABLE_MAIN,[self::TABLE_KEY=>$this->{self::TABLE_KEY}]);
+            if(!empty($r)) foreach ($this->p2a($this) as $p) if(isset($r[$p])) $this->{$p}=$r[$p];
+            // load links
+            $this->storage_id->load($r['storage_id']);
+            $this->choir_parts->load($r['choir_parts']);
+            $this->solo_parts->load($r['solo_parts']);
+            //if(!empty($r['country_id'])) $this->country->load($r['country_id']);
+
+            // load lists
+            $this->composers=Person::music_list('musaMusicComposers',$this->{self::TABLE_KEY});
+            $this->arrangers=Person::music_list('musaMusicArrangers',$this->{self::TABLE_KEY});
+            $this->authors=Person::music_list('musaMusicAuthors',$this->{self::TABLE_KEY});
+            $this->categories=Categories::music_list('musaMusicCategories',$this->{self::TABLE_KEY});
+            $this->themes=Themes::music_list('musaMusicThemes',$this->{self::TABLE_KEY});
+            $this->languages=Languages::music_list('musaMusicLanguages',$this->{self::TABLE_KEY});
+            $this->instruments=Instruments::music_list('musaMusicInstruments',$this->{self::TABLE_KEY});
+            $this->holidays=Holidays::music_list('musaMusicHolidays',$this->{self::TABLE_KEY});
+            $this->songsolos=Songsolos::music_list('musaMusicSongsolos',$this->{self::TABLE_KEY});
+
+            $this->object_modified=false;
+            return true;
+        }
+        return false;
+    }
+
             $this->arrangers=$this->list_persons('musaMusicArrangers');
             $this->authors=$this->list_persons('musaMusicAuthors');
             $this->composers=$this->list_persons('musaMusicComposers');

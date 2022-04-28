@@ -2,13 +2,13 @@
 require_once 'environment.php';
 require_once 'music.php';
 
+
 // tests
-Holiday::_test();
-die;
 Gender::_test();
-Country::_test();
 Person::_test();
 Music::_test();
+Holiday::_test();
+Country::_test();
 die;
 
 //pa(Music::delete(1));

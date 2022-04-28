@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS `musaMusic`
  `yearOfComp`    year NULL ,
  `movements`     integer NULL ,
  `notes`         text NULL ,
- `serial_number` varchar(45) NULL ,
+ `serial_number` varchar(100) NULL ,
  `publisher`     varchar(200) NULL ,
  `identifier`    varchar(200) NULL ,
 
