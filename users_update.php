@@ -13,20 +13,20 @@ $return_url='users_admin.php';
 $conf['title']="Användare";
 $conf['table']="musaUsers";
 
-$conf['cols']=['name', 'title', 'email', 'phone', 'external_visible', 'status_code', 'role_code'];
+$conf['cols']=['name', 'title', 'email', 'phone', 'external_visible', 'user_status_code', 'role_code'];
 
 $conf['keys']=['user_id'];
-$conf['select']=['status_code','role_code'];
-$conf['extern']=['status_code','role_code'];
+$conf['select']=['user_status_code','role_code'];
+$conf['extern']=['user_status_code','role_code'];
 
 // ------------------------------------------------------
 $sql="SELECT * 
-FROM musaStatusTypes 
-ORDER BY status_name ASC";
+FROM musaUserStatusTypes 
+ORDER BY org_status_name ASC";
 $status_list=$db->getRecFrmQry($sql);
 // set all selectable as select checkboxes...
-$columns['status_code']['select']=[];
-foreach($status_list as $i) $columns['status_code']['select'][$i['status_code']]=$i['status_name'];
+$columns['user_status_code']['select']=[];
+foreach($status_list as $i) $columns['user_status_code']['select'][$i['user_status_code']]=$i['org_status_name'];
 // ------------------------------------------------------
 $sql="SELECT * 
 FROM musaRoleTypes 
@@ -95,7 +95,7 @@ if(isset($_GET['create'])){
     // empty form
     foreach(array_merge($conf['cols'],$conf['extern']) as $c) $columns[$c]['value']=null;
     // default
-    $columns['status_code']['value']='NORMAL';
+    $columns['user_status_code']['value']='NORMAL';
     $columns['role_code']['value']='ADMIN';
     $columns['external_visible']['value']=1;
     $title=$conf['title']."; Skapa ny post";
@@ -105,7 +105,7 @@ if(isset($_GET['create'])){
 
         // mark as deleted
         if(isset($_GET['delete'])){
-            $rec['status_code']='DELETED';
+            $rec['user_status_code']='DELETED';
             $r=$db->update($conf['table'],$rec,$dbkey);
             header("location: $return_url");
             exit;
@@ -162,7 +162,7 @@ require_once 'header.php';
 <?php
 
 foreach($conf['cols'] as $c) if(in_array($c,$conf['select'])) gen_select($c); else gen_input($c);;
-//gen_checks('status_code');
+//gen_checks('user_status_code');
 foreach($dbkey as $n => $v) print '<input type="hidden" name="'.$n.'" value="'.$v.'"/>';
 
 if(isset($_REQUEST['edit'])) {

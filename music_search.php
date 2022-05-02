@@ -14,7 +14,7 @@ $sql_table="
    ,GROUP_CONCAT(DISTINCT CONCAT_WS(' ',auth.first_name,auth.family_name) SEPARATOR ', ') as auth
 FROM musaMusic
 LEFT JOIN musaOrgs ON musaOrgs.org_id=musaMusic.org_id
-LEFT JOIN musaStatusTypes ON musaStatusTypes.status_code=musaOrgs.status_code
+LEFT JOIN musaOrgStatusTypes ON musaOrgStatusTypes.org_status_code=musaOrgs.org_status_code
 LEFT JOIN musaStorages ON musaStorages.storage_id=musaMusic.storage_id
 LEFT JOIN musaMusicComposers ON musaMusicComposers.music_id=musaMusic.music_id
 LEFT JOIN musaPersons comp ON comp.person_id=musaMusicComposers.person_id
@@ -22,7 +22,7 @@ LEFT JOIN musaMusicArrangers ON musaMusicArrangers.music_id=musaMusic.music_id
 LEFT JOIN musaPersons arr ON arr.person_id=musaMusicArrangers.person_id
 LEFT JOIN musaMusicAuthors ON musaMusicAuthors.music_id=musaMusic.music_id
 LEFT JOIN musaPersons auth ON auth.person_id=musaMusicAuthors.person_id
-WHERE musaStatusTypes.status_hidden=0 AND musaMusic.org_id={$user->current_org_id()}
+WHERE musaOrgStatusTypes.org_status_hidden=0 AND musaMusic.org_id={$user->current_org_id()}
 ";
 //$sql_group="GROUP BY musaMusic.music_id";
 $sql_group="GROUP BY musaMusic.music_id";

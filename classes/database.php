@@ -181,6 +181,7 @@ class Database{
             $res = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return $res;
         } catch (\PDOException $e) {
+            self::pa($stmt,true);
             throw new \RuntimeException("[".$e->getCode()."] : ". $e->getMessage());
         }
     }
@@ -255,6 +256,7 @@ class Database{
             }
             return $res;
         } catch (\PDOException $e) {
+            self::pa($stmt,true);
             throw new \RuntimeException("[".$e->getCode()."] : ". $e->getMessage());
         }
     }
@@ -291,6 +293,7 @@ class Database{
             $stmt->execute(array_merge($set,$where));
             return $stmt->rowCount();
         } catch (\PDOException $e) {
+            self::pa($sql,true);
             throw new \RuntimeException("[".$e->getCode()."] : ". $e->getMessage());
         }
     }
@@ -319,6 +322,7 @@ class Database{
             $stmt->execute(array_merge($set,$where));
             return $stmt->rowCount();
         } catch (\PDOException $e) {
+            self::pa($sql,true);
             throw new \RuntimeException("[".$e->getCode()."] : ". $e->getMessage());
         }
     }
@@ -348,6 +352,7 @@ class Database{
  
             return $stmt->rowCount();
         } catch (\PDOException $e) {
+            self::pa($sql,true);
             throw new \RuntimeException("[".$e->getCode()."] : ". $e->getMessage());
         }
     }
@@ -384,18 +389,18 @@ class Database{
             $stmt->execute(array_values($data));
             return $stmt->rowCount();
         } catch (\PDOException $e) {
+            self::pa($stmt,true);
+            self::pa($data,true);
             throw new \RuntimeException("[".$e->getCode()."] : ". $e->getMessage());
         }
     }
-    /**
-     * Print array Method
-     *
-     * @param  array 
-     */
-    public function arprint($array){
-        print"<pre>";
-        print_r($array);
-        print"</pre>";
+    protected static function pa($a,$callstack=false){
+        print('<pre>');
+        print_r($a);
+        if($callstack) foreach (debug_backtrace() as $v) {
+            print("Line $v[line] in ".basename($v['file'])." calls $v[function]\n");
+        }
+        print('</pre>');
     }
     
     /**
@@ -431,6 +436,7 @@ class Database{
             foreach ($this->tables as $tn) {
                 $ti = self::getRecFrmQry("SHOW COLUMNS IN $tn");
                 foreach ($ti as $ci) {
+                    //$ci=array_change_key_case($ci, CASE_LOWER);
                     $this->columns[$ci['Field']]=$ci;
                 }
             }

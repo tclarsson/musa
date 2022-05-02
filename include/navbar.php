@@ -66,19 +66,26 @@ if($user->isLoggedIn()): ?>
     </li>
   <?php endif?>
   <?php if($user->can(['admin','edit'],false)): ?>
-    <li class="nav-item">
-      <a class="nav-link" href="<?php print(ROOT_URI."edit.php");?>">Editera</a>
-    </li>
-  <?php endif?>
+  <li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="<?php print(ROOT_URI);?>#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    Editera
+    </a>
+    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+    <a class="dropdown-item" href="<?php print(ROOT_URI);?>music_list_admin.php">Hantera Listor</a>
+    <div class="dropdown-divider"></div>
+    <a class="dropdown-item" href="<?php print(ROOT_URI);?>user_invite.php">Bjud in ny användare</a>
+    </div>
+  </li>
+<?php endif?>
 <?php if($user->can('admin')): ?>
   <li class="nav-item dropdown">
     <a class="nav-link dropdown-toggle" href="<?php print(ROOT_URI);?>#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
       Admin
     </a>
     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-    <a class="dropdown-item" href="<?php print(ROOT_URI);?>user_invite.php">Bjud in ny användare</a>
-    <div class="dropdown-divider"></div>
     <a class="dropdown-item" href="<?php print(ROOT_URI);?>users_admin.php">Hantera användare</a>
+    <div class="dropdown-divider"></div>
+    <a class="dropdown-item" href="<?php print(ROOT_URI);?>user_invite.php">Bjud in ny användare</a>
     </div>
   </li>
 <?php endif?>

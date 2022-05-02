@@ -4,19 +4,19 @@ require_once 'environment.php';
 $page_title='Organisationer';
 $user->admit(['super']);
 // ------------------------------------------------------
-$ws="org.status_hidden<4";
-$ws="org.status_hidden<=3";
-if(isset($_REQUEST['recover'])) $ws="org.status_hidden>3";
+$ws="org_status_hidden<4";
+$ws="org_status_hidden<=3";
+if(isset($_REQUEST['recover'])) $ws="org_status_hidden>3";
 $sql_table="
 FROM musaOrgs
-LEFT JOIN musaStatusTypes org ON org.status_code=musaOrgs.status_code
+LEFT JOIN musaOrgStatusTypes ON musaOrgStatusTypes.org_status_code=musaOrgs.org_status_code
 WHERE $ws
 ";
 $sql_group="GROUP BY musaOrgs.org_id";
 
-//$cols=update_columns_info(['status_name'=>'Status']);
-$cols_visible=['org_id', 'org_name', 'org_info','status_name', 'org_created'];
-$cols_searchable=['org_name', 'org_info','status_name'];
+//$cols=update_columns_info(['org_status_name'=>'Status']);
+$cols_visible=['org_id', 'org_name', 'org_info','org_status_name', 'org_created'];
+$cols_searchable=['org_name', 'org_info','org_status_name'];
 $cols=get_columns_info($cols_visible);
 //print("<pre>");print_r(json_encode($cols,JSON_PRETTY_PRINT));print("</pre>");
 

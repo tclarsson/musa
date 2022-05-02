@@ -9,6 +9,16 @@ trait music_common {
         $this->db=$db;
         $this->object_modified=true;
     }
+    public static function get_constants(){
+        $oClass = new ReflectionClass(__CLASS__);
+        $i=$oClass->getConstants();
+        return $i;
+    }
+    public static function classinfo(){
+        $i=self::get_constants();
+        if(empty($i['CLASS_TITLE'])) $i['CLASS_TITLE']=$i['TABLE_MAIN'];
+        return $i;
+    }
     public function __set($name, $value) {
         throw new \Exception("Adding new properties is not allowed on " . __CLASS__);
     }
@@ -19,6 +29,15 @@ trait music_common {
         $this->object_modified=true;
     }
 
+    // pl('ObjList');
+    protected function proplist($class='all'){
+        $a=[];
+        foreach ($this as $p=>$v) if(is_object($v)) {
+            $c=get_class($v);
+            if(($c=='all')||($c==$class)) $a[]=$p;
+        }
+        return $a;
+    }
   
     protected static function p2a($o,$dump=false){
         $a=[];
@@ -36,12 +55,16 @@ trait music_common {
         }
         print('</pre>');
     }
-    protected static function ass($exp){
+    protected static function ass($exp,$errmsg=""){
         if($exp===false) $exp="false";
         eval('$t='."$exp;");
         if(!$t) {
             $v=debug_backtrace()[0];
-            print("<h1>Assert of [$exp] failed at line: $v[line] in ".basename($v['file'])."</h1>
+            print("
+            <hr>
+            <h2>Assert of [$exp] failed at line: $v[line] in ".basename($v['file'])."</h2>
+            <pre>$errmsg</pre>
+            <hr>
             ");
         }
     }
@@ -70,7 +93,11 @@ trait music_common {
             if(!empty($this->{self::TABLE_KEY})) $this->load();
         }
     }
+    public static function tabkey(){
+        return self::TABLE_KEY;
+    }
     public function key(){
+        if(empty($this->{self::TABLE_KEY})) return [];
         return [self::TABLE_KEY=>$this->{self::TABLE_KEY}];
     }
     public function like(){
@@ -162,6 +189,7 @@ trait music_common {
 //------------------------------------------------------------------------------------
 class Gender{
     use music_common;
+    const CLASS_TITLE='Kön';
     const TABLE_MAIN='musaGenderTypes';
     const TABLE_KEY='gender_id';
     const TABLE_LIKE='gender_name';
@@ -221,6 +249,7 @@ class Gender{
 //------------------------------------------------------------------------------------
 class Country{
     use music_common;
+    const CLASS_TITLE='Land';
     const TABLE_MAIN='musaCountries';
     const TABLE_KEY='country_id';
     const TABLE_LIKE='country_name';
@@ -243,6 +272,7 @@ class Country{
 //------------------------------------------------------------------------------------
 class Holiday{
     use music_common;
+    const CLASS_TITLE='Högtid';
     const TABLE_MAIN='musaHolidays';
     const TABLE_KEY='holiday_id';
     const TABLE_LIKE='holiday_name';
@@ -267,6 +297,7 @@ class Holiday{
 //------------------------------------------------------------------------------------
 class Category{
     use music_common;
+    const CLASS_TITLE='Kategori';
     const TABLE_MAIN='musaCategories';
     const TABLE_KEY='category_id';
     const TABLE_LIKE='category_name';
@@ -291,6 +322,7 @@ class Category{
 //------------------------------------------------------------------------------------
 class Instrument{
     use music_common;
+    const CLASS_TITLE='Instrument';
     const TABLE_MAIN='musaInstruments';
     const TABLE_KEY='instrument_id';
     const TABLE_LIKE='instrument_name';
@@ -315,6 +347,7 @@ class Instrument{
 //------------------------------------------------------------------------------------
 class Language{
     use music_common;
+    const CLASS_TITLE='Språk';
     const TABLE_MAIN='musaLanguages';
     const TABLE_KEY='language_id';
     const TABLE_LIKE='language_name';
@@ -337,15 +370,16 @@ class Language{
 
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
-class ChoirVoice{
+class Choirvoice{
     use music_common;
-    const TABLE_MAIN='musaChoirVoices';
-    const TABLE_KEY='choir_voice_id';
-    const TABLE_LIKE='choir_voice_name';
-    const TABLE_PROPS=['choir_voice_name'];
+    const CLASS_TITLE='Körstämmor';
+    const TABLE_MAIN='musaChoirvoices';
+    const TABLE_KEY='choirvoice_id';
+    const TABLE_LIKE='choirvoice_name';
+    const TABLE_PROPS=['choirvoice_name'];
 
-    public $choir_voice_id=null;
-    public $choir_voice_name=null;
+    public $choirvoice_id=null;
+    public $choirvoice_name=null;
     
     public function __construct($i=null) {
         self::common_construct();
@@ -361,15 +395,16 @@ class ChoirVoice{
 
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
-class SoloVoice{
+class Solovoice{
     use music_common;
-    const TABLE_MAIN='musaSoloVoices';
-    const TABLE_KEY='solo_voice_id';
-    const TABLE_LIKE='solo_voice_name';
-    const TABLE_PROPS=['solo_voice_name'];
+    const CLASS_TITLE='Solostämma';
+    const TABLE_MAIN='musaSolovoices';
+    const TABLE_KEY='solovoice_id';
+    const TABLE_LIKE='solovoice_name';
+    const TABLE_PROPS=['solovoice_name'];
 
-    public $solo_voice_id=null;
-    public $solo_voice_name=null;
+    public $solovoice_id=null;
+    public $solovoice_name=null;
     
     public function __construct($i=null) {
         self::common_construct();
@@ -387,6 +422,7 @@ class SoloVoice{
 //------------------------------------------------------------------------------------
 class Theme{
     use music_common;
+    const CLASS_TITLE='Tema';
     const TABLE_MAIN='musaThemes';
     const TABLE_KEY='theme_id';
     const TABLE_LIKE='theme_name';
@@ -411,6 +447,7 @@ class Theme{
 //------------------------------------------------------------------------------------
 class Storage{
     use music_common;
+    const CLASS_TITLE='Lagringsplats';
     const TABLE_MAIN='musaStorages';
     const TABLE_KEY='storage_id';
     const TABLE_LIKE='storage_name';
@@ -436,6 +473,7 @@ class Storage{
 //------------------------------------------------------------------------------------
 class Person {
     use music_common;
+    const CLASS_TITLE='Person';
     const TABLE_MAIN='musaPersons';
     const TABLE_KEY='person_id';
     const TABLE_LIKE='family_name';
@@ -478,8 +516,8 @@ class Person {
     public function store($force=false){
         if(empty($this->{self::TABLE_KEY})) $this->like();
         $rec=[];
-        $rec['gender_id']=$this->gender->store();
-        $rec['country_id']=$this->country->store();
+        $rec+=$this->gender->store();
+        $rec+=$this->country->store();
         foreach (self::TABLE_PROPS as $p) if(!empty($this->{$p})) $rec[$p]=$this->{$p};
         if(!empty($rec)) {
             if(empty($this->{self::TABLE_KEY})){
@@ -514,14 +552,15 @@ class Person {
 
     public static function _test(){
         self::pa("---------------------------------------------------------------------------\n".__CLASS__." class test started.");
-        $o=New self('Nisse');$o->store();self::pa($o);
+        $o=New self(__CLASS__.__CLASS__);self::ass($o->date_born!=1965,$o->json());
+        $o->store();//self::pa($o);
         $id=$o->person_id;
-        $o=New Person($id);$o->date_born=1965;$o->store(true);self::pa($o->json());
-        $o=New Person($id);self::pa($o->json());self::ass($o->date_born==1965);
+        $o=New Person($id);$o->date_born=1965;$o->store(true);
+        $o=New Person($id);self::ass($o->date_born==1965,$o->json());
         
-        $o=New Person(["person_id"=>3,"family_name"=>"Larsson"],'F','Norge');self::pa($o->json());
+        $o=New Person(["person_id"=>3,"family_name"=>"Larsson"],'F','Norge');self::ass($o->country->country_name=='Norge',$o->json());
         //$o=New Person("Erik");self::pa($o);
-        $o=New Person("Larsson",'MALE','Sverige');self::pa($o->json());
+        $o=New Person("Larsson",'MALE','Sverige');self::ass($o->country->country_name=='Sverige',$o->json());
         //$o=New Person("Erik");
 
         self::delete($id);
@@ -537,12 +576,70 @@ class Person {
 
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
+class ObjList {
+    protected $class;
+    protected $linktable;
+
+    function __construct($l,$linktable=null){
+        if(!empty($l)){
+            if(is_array($l)){
+                $this->class=get_class($l[0]);
+                foreach($l as $o) $this->objects[]=$o;
+            } else if (is_string($l)) {
+                $this->class=$l;
+                $this->objects=[];
+            }   
+            $this->linktable=$linktable;
+        } else {
+            throw new Exception("Missing object type or list of objects", 1);
+        }
+    }
+    function key(){
+        return ${$this->class}::tabkey();
+    }
+    function list(){
+        return $this->objects;
+    }
+    function linkstore($key){
+        global $db;
+        foreach($this->objects as $o){
+            $rec=$key;
+            $rec+=$o->store();
+            $db->insert($this->linktable,$rec);
+        }
+    }
+    function linkload($key){
+        global $db;
+        $sql="SELECT ".$this->key()." FROM $this->linktable WHERE ".array_keys($key)[0]."=".array_valuse($key)[0];
+        pa($sql);
+        $r=$this->db->getColFrmQry($sql);
+        $this->objects=[];
+        if(!empty($r)) foreach($r as $id) $this->objects[]=New ${$this->class}($id);
+        return $this->objects;
+    }
+
+    function set($l){
+        if(!empty($l)){
+            if(!is_array($l)) $l=[$l];
+            $c=get_class($l[0]);
+            if($c==$this->class) $this->objects=$l;
+            else throw new Exception("Object must be of class: $this->class", 1);
+        }
+    }
+}
+
+//------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------
 class Music {
     use music_common;
+    const CLASS_TITLE='Musik';
     const TABLE_MAIN='musaMusic';
     const TABLE_KEY='music_id';
     const TABLE_LIKE='title';
-    const TABLE_PROPS=['org_id', 'storage_id', 'choir_parts', 'solo_parts', 'title', 'subtitle', 'yearOfComp', 'movements', 'notes', 'serial_number', 'publisher', 'identifier'];
+    const TABLE_PROPS=['org_id', 'storage_id', 'choirvoice_id', 'solovoice_id', 'title', 'subtitle', 'yearOfComp', 'movements', 'notes', 'serial_number', 'publisher', 'identifier'];
+    const TABLE_LINKS=[
+        'musaMusicComposers'=>self::TABLE_KEY,
+         'storage_id', 'choirvoice_id', 'solovoice_id', 'title', 'subtitle', 'yearOfComp', 'movements', 'notes', 'serial_number', 'publisher', 'identifier'];
 
     public $music_id=null;
     public $org_id=null;
@@ -554,43 +651,52 @@ class Music {
     public $serial_number=null;
     public $publisher=null;
     public $identifier=null;
-    //relations
+    //relations (to single objects)
     public $storage_id=null;
-    public $choir_parts=null;
-    public $solo_parts=null;
-    // lists
+    public $choirvoice_id=null;
+    public $solovoice_id=null;
+    // lists  (of multiple objects)
+    public $composers;
     public $arrangers;
     public $authors;
-    public $composers;
     public $categories;
     public $themes;
     public $languages;
     public $instruments;
     public $holidays;
-    public $songsolos;
+    public $solovoices;
 
 
     
-    public function __construct($i=null) {
+    public function __construct($i=null,$storage_id=null,$choirvoice_id=null,$solovoice_id=null) {
         self::common_construct();
+        //relations
+        $this->storage_id = New Storage($storage_id);
+        $this->choirvoice_id = New Choirvoice($choirvoice_id);
+        $this->solovoice_id = New Solovoice($solovoice_id);
+        //lists
+        $this->composers = New ObjList('Person','musaMusicComposers');
+        $this->arrangers = New ObjList('Person','musaMusicArrangers');
+        $this->authors = New ObjList('Person','musaMusicAuthors');
+        $this->categories = New ObjList('Category','musaMusicCategories');
+        $this->themes = New ObjList('Theme','musaMusicThemes');
+        $this->languages = New ObjList('Language','musaMusicLanguages');
+        $this->instruments = New ObjList('Instrument','musaMusicInstruments');
+        $this->holidays = New ObjList('Holiday','musaMusicHolidays');
+        $this->solovoices = New ObjList('Solovoice','musaMusicSolovoices');
+    
         $this->_params2props($i);
     }
 
-    private function list_store($tn,$l){
-        if(!empty($l)) foreach($l as $o){
-            $rec=[self::TABLE_KEY=>$this->{self::TABLE_KEY}];
-            $rec+=$o->store();
-            $this->db->insert($tn,$rec);
-        }        
-    }
-
-    public function store(){
+    public function store($force=false){
         $rec=[];
-        $rec+=$this->storage_id->store();
-        $rec+=$this->choir_parts->store();
-        $rec+=$this->solo_parts->store();
+        //relations
+        $rec+=$this->storage_id->store($force);
+        $rec+=$this->choirvoice_id->store($force);
+        $rec+=$this->solovoice_id->store($force);
 
-        foreach (self::TABLE_PROPS as $p) if(!empty($this->{$p})) $rec[$p]=$this->{$p};
+        foreach (self::TABLE_PROPS as $p) if(!empty($this->{$p})) if(is_object($this->{$p})) $rec+=$this->{$p}->key(); else $rec[$p]=$this->{$p};
+            
         if(!empty($rec)) {
             if(empty($this->{self::TABLE_KEY})){
                 $this->db->insert(self::TABLE_MAIN,$rec);
@@ -598,46 +704,11 @@ class Music {
             } else if($this->object_modified||$force) { 
                 $this->db->update(self::TABLE_MAIN,$rec,[self::TABLE_KEY=>$this->{self::TABLE_KEY}]);
             }
+            // store lists (when music_id is available)
+            foreach($this->proplist('ObjList') as $p) $this->{$p}->linkstore($this->key());
             $this->object_modified=false;
         }
-        // store lists
-        $this->list_store('musaMusicComposers',$this->composers);
-        $this->list_store('musaMusicArrangers',$this->arrangers);
-        $this->list_store('musaMusicAuthors',$this->authors);
-        $this->list_store('musaMusicCategories',$this->categories);
-        $this->list_store('musaMusicThemes',$this->themes);
-        $this->list_store('musaMusicLanguages',$this->languages);
-        $this->list_store('musaMusicInstruments',$this->instruments);
-        $this->list_store('musaMusicHolidays',$this->holidays);
-        $this->list_store('musaMusicSongsolos',$this->songsolos);
-    
         return $this->key();
-
-    }
-
-    private function list_persons($tn){
-        $sql="SELECT person_id
-        FROM $tn
-        WHERE music_id=$this->music_id
-        ";
-        $r=$this->db->getColFrmQry($sql);
-        if(!empty($r)) {
-            return Person::list($r);
-        }
-        return [];
-    }
-
-    private function list_load($tn,$on,$ln){
-        $key={$on}::keyname();
-        $sql="SELECT $key FROM $tn WHERE ".self::TABLE_KEY."=".$this->{self::TABLE_KEY};
-        $r=$this->db->getColFrmQry($sql);
-        if(!empty($r)) {
-
-        if(!empty($l)) foreach($l as $o){
-            $rec=[self::TABLE_KEY=>$this->{self::TABLE_KEY}];
-            $rec+=$o->store();
-            $this->db->insert($tn,$rec);
-        }        
     }
 
 
@@ -646,32 +717,15 @@ class Music {
         if(!empty($this->{self::TABLE_KEY})){
             $r=$this->db->getUnique(self::TABLE_MAIN,[self::TABLE_KEY=>$this->{self::TABLE_KEY}]);
             if(!empty($r)) foreach ($this->p2a($this) as $p) if(isset($r[$p])) $this->{$p}=$r[$p];
-            // load links
+            
+            //relations
             $this->storage_id->load($r['storage_id']);
-            $this->choir_parts->load($r['choir_parts']);
-            $this->solo_parts->load($r['solo_parts']);
-            //if(!empty($r['country_id'])) $this->country->load($r['country_id']);
+            $this->choirvoice_id->load($r['choirvoice_id']);
+            $this->solovoice_id->load($r['solovoice_id']);
 
             // load lists
-            $this->composers=Person::music_list('musaMusicComposers',$this->{self::TABLE_KEY});
-            $this->arrangers=Person::music_list('musaMusicArrangers',$this->{self::TABLE_KEY});
-            $this->authors=Person::music_list('musaMusicAuthors',$this->{self::TABLE_KEY});
-            $this->categories=Categories::music_list('musaMusicCategories',$this->{self::TABLE_KEY});
-            $this->themes=Themes::music_list('musaMusicThemes',$this->{self::TABLE_KEY});
-            $this->languages=Languages::music_list('musaMusicLanguages',$this->{self::TABLE_KEY});
-            $this->instruments=Instruments::music_list('musaMusicInstruments',$this->{self::TABLE_KEY});
-            $this->holidays=Holidays::music_list('musaMusicHolidays',$this->{self::TABLE_KEY});
-            $this->songsolos=Songsolos::music_list('musaMusicSongsolos',$this->{self::TABLE_KEY});
+            foreach($this->proplist('ObjList') as $p) $this->{$p}->linkload($this->key());
 
-            $this->object_modified=false;
-            return true;
-        }
-        return false;
-    }
-
-            $this->arrangers=$this->list_persons('musaMusicArrangers');
-            $this->authors=$this->list_persons('musaMusicAuthors');
-            $this->composers=$this->list_persons('musaMusicComposers');
             $this->object_modified=false;
             return true;
         }
@@ -693,7 +747,7 @@ class Music {
 
     public static function list_all($search=null){
         global $db;
-        $cols=["music_id","org_id","storage_id","choir_parts","solo_parts","title","subtitle","yearOfComp","movements","notes","serial_number","publisher",
+        $cols=["music_id","org_id","storage_id","choirvoice_id","solovoice_id","title","subtitle","yearOfComp","movements","notes","serial_number","publisher",
         "identifier",
         "person_id","gender_id","country_id","family_name","first_name","date_born","date_dead"];
         $cols=["title","subtitle","yearOfComp","movements","notes","publisher",
@@ -709,7 +763,7 @@ class Music {
         ,CONCAT_WS('#',$sc) as search_field
         FROM musaMusic
         LEFT JOIN musaOrgs ON musaOrgs.org_id=musaMusic.org_id
-        LEFT JOIN musaStatusTypes ON musaStatusTypes.status_code=musaOrgs.status_code
+        LEFT JOIN musaOrgStatusTypes ON musaOrgStatusTypes.org_status_code=musaOrgs.org_status_code
         LEFT JOIN musaStorages ON musaStorages.storage_id=musaMusic.storage_id
         LEFT JOIN musaMusicComposers ON musaMusicComposers.music_id=musaMusic.music_id
         LEFT JOIN musaPersons comp ON comp.person_id=musaMusicComposers.person_id
@@ -717,7 +771,7 @@ class Music {
         LEFT JOIN musaPersons arr ON arr.person_id=musaMusicArrangers.person_id
         LEFT JOIN musaMusicAuthors ON musaMusicAuthors.music_id=musaMusic.music_id
         LEFT JOIN musaPersons auth ON auth.person_id=musaMusicAuthors.person_id
-        WHERE musaStatusTypes.status_hidden=0
+        WHERE musaOrgStatusTypes.org_status_hidden=0
         ";
         if(!empty($search)) $sql.="AND CONCAT_WS('#',$sc) LIKE '%$search%' ";
         $sql.="GROUP BY musaMusic.music_id";
@@ -729,33 +783,21 @@ class Music {
 
     public static function _test(){
         self::pa("---------------------------------------------------------------------------\n".__CLASS__." class test started.");
-        $o=New Music;
+        $o=New Music(__CLASS__.__CLASS__);
         $o->org_id=2;
-        $o->title="TestSong";
         $o->subtitle="TestSub";
         $o->yearOfComp=1987;
-        $o->movements=null;
-        $o->notes=null;
-        $o->serial_number=null;
-        $o->publisher=null;
-        $o->identifier=null;
-        $o->storage_id=null;
-        $o->choir_parts=null;
-        $o->solo_parts=null;
+        //$o->storage_id=New Storage(__CLASS__);
 
-        $o->arrangers=[New Person("arr1"),New Person("arr2",'MALE')];
-        $p=New Person("Person1",'kvinna','testland');
-        $o->composers=[$p];
-        $o->authors=[New Person("Larsson",'MALE','Sverige'),New Person("Erik"),$p];
-        $o->categories;
-   
+        $o->arrangers->set([New Person("arr1"),New Person("arr2",'MALE')]);
+        $o->composers->set(New Person("Person1",'kvinna','testland'));
+        $o->authors->set([New Person("Larsson",'MALE','Sverige'),New Person("Erik")]);
         self::pa($o->json());
         $o->store();self::pa($o->json());
         self::delete($o->music_id);
-        
-        $o->title="Happy Again";
-        self::pa($o->json());
-        $o->store(true);
+        $o->title='Kopia1';$o->music_id=null;$o->store(true);
+        $o->title='Kopia2';$o->music_id=null;$o->store(true);
+        $o->title='Kopia3';$o->music_id=null;$o->store(true);
 
         self::pa(__CLASS__." class test performed.\n---------------------------------------------------------------------------");
     }

@@ -395,7 +395,7 @@ class User {
             $sql="SELECT * 
             FROM musaUsers
             LEFT JOIN musaRoleTypes ON musaRoleTypes.role_code=musaUsers.role_code
-            LEFT JOIN musaUserStatus ON musaUserStatus.status_code=musaUsers.status_code
+            LEFT JOIN musaUserStatusTypes ON musaUserStatusTypes.user_status_code=musaUsers.user_status_code
             LEFT JOIN musaOrgs ON musaOrgs.org_id=musaUsers.org_id
             WHERE musaUsers.user_id=$this->id
             ";        
@@ -405,7 +405,7 @@ class User {
             } catch(Exception $e) {
                 $a=[];
             }
-            //pa($a);
+            //pa($a,true);
             if(empty($a)) {
                 $this->data=[];
                 $this->permissions=[];

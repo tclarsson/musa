@@ -12,8 +12,8 @@
 "publisher":"publisher",
 "identifier":"identifier",
 "storage_id":"storage_id",
-"choir_parts":"choir_parts",
-"solo_parts":"solo_parts",
+"choirvoice_id":"choirvoice_id",
+"solovoice_id":"solovoice_id",
 `musaMusicArrangers`
 `musaMusicAuthors`
 `musaMusicCategories`
@@ -98,13 +98,13 @@ INSERT musaLanguages (language_name) VALUES ('Tyska');
 INSERT musaLanguages (language_name) VALUES ('Franska');
 
 
-CREATE TABLE IF NOT EXISTS `musaMusicSongsolos`
+CREATE TABLE IF NOT EXISTS `musaMusicSolovoices`
 (
- `solo_voice_id` integer NOT NULL ,
+ `solovoice_id` integer NOT NULL ,
  `music_id`   integer NOT NULL ,
 
-KEY `FK_482` (`solo_voice_id`),
-CONSTRAINT `FK_480` FOREIGN KEY `FK_482` (`solo_voice_id`) REFERENCES `musaSoloVoices` (`solo_voice_id`) ON DELETE NO ACTION ON UPDATE CASCADE,
+KEY `FK_482` (`solovoice_id`),
+CONSTRAINT `FK_480` FOREIGN KEY `FK_482` (`solovoice_id`) REFERENCES `musaSolovoices` (`solovoice_id`) ON DELETE NO ACTION ON UPDATE CASCADE,
 KEY `FK_485` (`music_id`),
 CONSTRAINT `FK_483` FOREIGN KEY `FK_485` (`music_id`) REFERENCES `musaMusic` (`music_id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -227,26 +227,26 @@ CONSTRAINT `FK_446` FOREIGN KEY `FK_448` (`gender_id`) REFERENCES `musaGenderTyp
 INSERT musaPersons (family_name) VALUES ('Mozart');
 
 # global table of categories, user gets to see/use own orgs used musaCategories
-CREATE TABLE IF NOT EXISTS `musaChoirVoices`
+CREATE TABLE IF NOT EXISTS `musaChoirvoices`
 (
- `choir_voice_id` integer NOT NULL AUTO_INCREMENT,
- `choir_voice_name`    varchar(200) NOT NULL ,
+ `choirvoice_id` integer NOT NULL AUTO_INCREMENT,
+ `choirvoice_name`    varchar(200) NOT NULL ,
 
-PRIMARY KEY (`choir_voice_id`)
+PRIMARY KEY (`choirvoice_id`)
 );
-INSERT musaChoirVoices (choir_voice_name) VALUES ('SATB');
-INSERT musaChoirVoices (choir_voice_name) VALUES ('SSAATTBB');
+INSERT musaChoirvoices (choirvoice_name) VALUES ('SATB');
+INSERT musaChoirvoices (choirvoice_name) VALUES ('SSAATTBB');
 
 
 # global table of categories, user gets to see/use own orgs used musaCategories
-CREATE TABLE IF NOT EXISTS `musaSoloVoices`
+CREATE TABLE IF NOT EXISTS `musaSolovoices`
 (
- `solo_voice_id` integer NOT NULL AUTO_INCREMENT,
- `solo_voice_name`      varchar(45) NOT NULL ,
+ `solovoice_id` integer NOT NULL AUTO_INCREMENT,
+ `solovoice_name`      varchar(45) NOT NULL ,
 
-PRIMARY KEY (`solo_voice_id`)
+PRIMARY KEY (`solovoice_id`)
 );
-INSERT musaSoloVoices (solo_voice_name) VALUES ('Sopran');
+INSERT musaSolovoices (solovoice_name) VALUES ('Sopran');
 
 
 CREATE TABLE IF NOT EXISTS `musaStorages`

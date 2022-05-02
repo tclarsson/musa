@@ -13,15 +13,15 @@ $return_url='orgs_admin.php';
 $conf['title']="Organisationer";
 $conf['table']="musaOrgs";
 
-$conf['cols']=['org_name', 'org_info', 'status_code'];
+$conf['cols']=['org_name', 'org_info', 'org_status_code'];
 $conf['keys']=['org_id'];
-$conf['select']=['status_code'];
-$conf['extern']=['status_code'];
+$conf['select']=['org_status_code'];
+$conf['extern']=['org_status_code'];
 
 // ------------------------------------------------------
 $sql="SELECT * 
-FROM musaStatusTypes 
-ORDER BY status_name ASC";
+FROM musaOrgStatusTypes 
+ORDER BY org_status_name ASC";
 $status_list=$db->getRecFrmQry($sql);
 
 
@@ -82,7 +82,7 @@ if(isset($_GET['create'])){
     // empty form
     foreach(array_merge($conf['cols'],$conf['extern']) as $c) $columns[$c]['value']=null;
     // default
-    $columns['status_code']['value']='NORMAL';
+    $columns['org_status_code']['value']='NORMAL';
     $title=$conf['title']."; Skapa ny post";
 } else {
     if(!empty($_REQUEST[$kid])){
@@ -90,7 +90,7 @@ if(isset($_GET['create'])){
 
         // mark as deleted
         if(isset($_GET['delete'])){
-            $rec['status_code']='DELETED';
+            $rec['org_status_code']='DELETED';
             $r=$db->update($conf['table'],$rec,$dbkey);
             header("location: $return_url");
             exit;
@@ -134,8 +134,8 @@ if(isset($_GET['create'])){
 }
 
 // set all selectable as select checkboxes...
-$columns['status_code']['select']=[];
-foreach($status_list as $i) $columns['status_code']['select'][$i['status_code']]=$i['status_name'];
+$columns['org_status_code']['select']=[];
+foreach($status_list as $i) $columns['org_status_code']['select'][$i['org_status_code']]=$i['org_status_name'];
 
 require_once 'header.php';
 
@@ -150,7 +150,7 @@ require_once 'header.php';
 <?php
 
 foreach($conf['cols'] as $c) if(in_array($c,$conf['select'])) gen_select($c); else gen_input($c);;
-//gen_checks('status_code');
+//gen_checks('org_status_code');
 foreach($dbkey as $n => $v) print '<input type="hidden" name="'.$n.'" value="'.$v.'"/>';
 
 if(isset($_REQUEST['edit'])) {

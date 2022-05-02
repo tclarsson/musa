@@ -327,8 +327,8 @@ class Music {
     public $publisher=null;
     public $identifier=null;
     public $storage_id=null;
-    public $choir_parts=null;
-    public $solo_parts=null;
+    public $choirvoice_id=null;
+    public $solovoice_id=null;
     public $arrangers;
     public $authors;
     public $categories;
@@ -432,7 +432,7 @@ class Music {
 
     public static function list_all($search=null){
         global $db;
-        $cols=["music_id","org_id","storage_id","choir_parts","solo_parts","title","subtitle","yearOfComp","movements","notes","serial_number","publisher",
+        $cols=["music_id","org_id","storage_id","choirvoice_id","solovoice_id","title","subtitle","yearOfComp","movements","notes","serial_number","publisher",
         "identifier",
         "person_id","gender_id","country_id","family_name","first_name","date_born","date_dead"];
         $cols=["title","subtitle","yearOfComp","movements","notes","publisher",
@@ -448,7 +448,7 @@ class Music {
         ,CONCAT_WS('#',$sc) as search_field
         FROM musaMusic
         LEFT JOIN musaOrgs ON musaOrgs.org_id=musaMusic.org_id
-        LEFT JOIN musaStatusTypes ON musaStatusTypes.status_code=musaOrgs.status_code
+        LEFT JOIN musaStatusTypes ON musaStatusTypes.user_status_code=musaOrgs.org_status_code
         LEFT JOIN musaStorages ON musaStorages.storage_id=musaMusic.storage_id
         LEFT JOIN musaMusicComposers ON musaMusicComposers.music_id=musaMusic.music_id
         LEFT JOIN musaPersons comp ON comp.person_id=musaMusicComposers.person_id
@@ -456,7 +456,7 @@ class Music {
         LEFT JOIN musaPersons arr ON arr.person_id=musaMusicArrangers.person_id
         LEFT JOIN musaMusicAuthors ON musaMusicAuthors.music_id=musaMusic.music_id
         LEFT JOIN musaPersons auth ON auth.person_id=musaMusicAuthors.person_id
-        WHERE musaStatusTypes.status_hidden=0
+        WHERE musaStatusTypes.user_status_hidden=0
         ";
         if(!empty($search)) $sql.="AND CONCAT_WS('#',$sc) LIKE '%$search%' ";
         $sql.="GROUP BY musaMusic.music_id";
