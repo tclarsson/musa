@@ -56,6 +56,7 @@ class Table {
 
         // calculate num rows & pages
         $sql = "SELECT COUNT(*) as 'numrows'\n$this->sql_body\n$this->sql_where $search $this->sql_group";
+        //pa($sql);
         $r=$this->db->getRecFrmQry($sql);
         if(empty($this->sql_group)) {
             $this->rows = $r[0]['numrows'];

@@ -10,7 +10,189 @@
         "Extra": ""
     },
     "owner": {
-        "header": "Ägare",
+        "header": "\u00c4gare",
         "type": "s"
+    },
+    "instrument_name": {
+        "header": "Instrument",
+        "type": "s",
+        "Field": "instrument_name",
+        "Type": "varchar(100)",
+        "Null": "NO",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+    },
+    "music_id": {
+        "header": "music_id",
+        "type": "n",
+        "Field": "music_id",
+        "Type": "int(11)",
+        "Null": "NO",
+        "Key": "MUL",
+        "Default": null,
+        "Extra": ""
+    },
+    "title": {
+        "header": "title",
+        "type": "s",
+        "Field": "title",
+        "Type": "varchar(200)",
+        "Null": "YES",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+    },
+    "subtitle": {
+        "header": "subtitle",
+        "type": "s",
+        "Field": "subtitle",
+        "Type": "varchar(100)",
+        "Null": "YES",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+    },
+    "yearOfComp": {
+        "header": "yearOfComp",
+        "type": "s",
+        "Field": "yearOfComp",
+        "Type": "year(4)",
+        "Null": "YES",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+    },
+    "movements": {
+        "header": "movements",
+        "type": "n",
+        "Field": "movements",
+        "Type": "int(11)",
+        "Null": "YES",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+    },
+    "notes": {
+        "header": "notes",
+        "type": "s",
+        "Field": "notes",
+        "Type": "text",
+        "Null": "YES",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+    },
+    "publisher": {
+        "header": "publisher",
+        "type": "s",
+        "Field": "publisher",
+        "Type": "varchar(200)",
+        "Null": "YES",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+    },
+    "comp": {
+        "header": "comp",
+        "type": "s"
+    },
+    "arr": {
+        "header": "arr",
+        "type": "s"
+    },
+    "auth": {
+        "header": "auth",
+        "type": "s"
+    },
+    "org_id": {
+        "header": "org_id",
+        "type": "n",
+        "Field": "org_id",
+        "Type": "int(11)",
+        "Null": "NO",
+        "Key": "MUL",
+        "Default": null,
+        "Extra": ""
+    },
+    "choirvoice_id": {
+        "header": "choirvoice_id",
+        "type": "n",
+        "Field": "choirvoice_id",
+        "Type": "int(11)",
+        "Null": "YES",
+        "Key": "MUL",
+        "Default": null,
+        "Extra": ""
+    },
+    "serial_number": {
+        "header": "serial_number",
+        "type": "s",
+        "Field": "serial_number",
+        "Type": "varchar(100)",
+        "Null": "YES",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+    },
+    "identifier": {
+        "header": "identifier",
+        "type": "s",
+        "Field": "identifier",
+        "Type": "varchar(200)",
+        "Null": "YES",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+    },
+    "family_name": {
+        "header": "family_name",
+        "type": "s",
+        "Field": "family_name",
+        "Type": "varchar(100)",
+        "Null": "NO",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+    },
+    "first_name": {
+        "header": "first_name",
+        "type": "s",
+        "Field": "first_name",
+        "Type": "varchar(100)",
+        "Null": "YES",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+    },
+    "date_born": {
+        "header": "date_born",
+        "type": "s",
+        "Field": "date_born",
+        "Type": "year(4)",
+        "Null": "YES",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+    },
+    "date_dead": {
+        "header": "date_dead",
+        "type": "s",
+        "Field": "date_dead",
+        "Type": "year(4)",
+        "Null": "YES",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+    },
+    "category_name": {
+        "header": "category_name",
+        "type": "s",
+        "Field": "category_name",
+        "Type": "varchar(100)",
+        "Null": "NO",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
     }
 }

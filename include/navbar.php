@@ -124,6 +124,7 @@ if($user->isLoggedIn()): ?>
 
         print('<a class="dropdown-item" href="'.ROOT_URI.'system_log.php">Log</a>');
         print('<a class="dropdown-item" href="https://analytics.google.com/analytics/web/?authuser=0#/report/trafficsources-overview/a177007171/">Google Analytics</a>');
+        print("<a class='dropdown-item' href='add_music.php'>Lägg till testdata</a>");
      ?>
       <div class="dropdown-divider"></div>
       <a class="dropdown-item" href="<?php print(ROOT_URI);?>maintenance_cron.php">Kör Underhåll</a>

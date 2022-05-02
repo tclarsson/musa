@@ -220,6 +220,19 @@ class Crud {
         $this->cols_searchable=$this->table_props;
         $this->cols_edit=$this->cols_searchable;
         $this->order = $this->table_props[0];
+        switch($classname){
+            case 'Person':
+                $this->table_list=['musaMusicComposers','musaMusicArrangers','musaMusicAuthors'];
+                $this->sql_body=",IF(musaMusic.org_id={$this->org_id},1,0) as owner
+FROM musaPersons 
+LEFT JOIN musaMusicComposers ON musaMusicComposers.person_id=musaPersons.person_id
+LEFT JOIN musaMusicArrangers ON musaMusicArrangers.person_id=musaPersons.person_id
+LEFT JOIN musaMusicAuthors ON musaMusicAuthors.person_id=musaPersons.person_id
+LEFT JOIN musaMusic ON (musaMusic.music_id=musaMusicArrangers.music_id) OR (musaMusic.music_id=musaMusicComposers.music_id)  OR (musaMusic.music_id=musaMusicAuthors.music_id)
+LEFT JOIN musaOrgs ON musaOrgs.org_id=musaMusic.org_id
+                ";
+                break;
+            }
         // ------------------------------------------------------
         $this->feature['create']=['button'=>New Button('create')];
     }
@@ -334,19 +347,6 @@ class Crud {
         }
         return $this->html=$r;
     }
-    function get_col_info($c){
-        global $columns,$db;
-        $i=$columns[$c];
-        if(empty($i['errmsg'])) $i['errmsg']='';
-        if(empty($i['sqltype'])) $i['sqltype']=$db->getColInfo($c)['Type'];
-        if(empty($i['name'])) $i['name']=$db->getColInfo($c)['Field'];
-        if(empty($i['header'])) $i['header']=$db->getColInfo($c)['Field'];
-        if(empty($i['required'])) $i['required']=($db->getColInfo($c)['Null']=='NO')?1:0;
-        if(empty($i['sqltype'])) {
-            print("</br>Missing information about column: $c</br>");
-        }
-        return($i);
-    }
     
     static function gen_input($c){
         if(empty($c['value'])) $c['value']=null;
@@ -446,7 +446,7 @@ class Crud {
     }
 
     function controller(){
-        $this->page_uri="list=$_GET[list]";
+        $this->page_uri=(!empty($_GET['list']))?"list=$_GET[list]":null;
 
         if(isset($_POST['bt_update'])) $this->update();
         else if(isset($_POST['bt_save'])) $this->insert();
