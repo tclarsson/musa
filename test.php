@@ -2,7 +2,9 @@
 require_once 'environment.php';
 require_once 'music.php';
 
-
+$m=New Music(8);
+pa($m->json());
+die;
 Music::_test();
 // tests
 Gender::_test();

@@ -8,7 +8,7 @@ $page_title='Musikarkivet';
 $user->admit([]);
 
 // ------------------------------------------------------
-$crud=New Crud('Musik',$user->current_org_id());
+$crud=New MusicCrud('Musik',$user->current_org_id());
 $crud->base_on_class('Music');
 //pa($crud);
 $crud->sql_body="

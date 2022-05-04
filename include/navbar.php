@@ -62,7 +62,7 @@ if($user->isLoggedIn()): ?>
   <ul class="navbar-nav mr-auto"> 
   <?php if($user->can(['admin','search'],false)): ?>
     <li class="nav-item">
-      <a class="nav-link" href="<?php print(ROOT_URI."music_search.php");?>">Söka</a>
+      <a class="nav-link" href="<?php print(ROOT_URI."music_admin.php");?>">Söka</a>
     </li>
   <?php endif?>
   <?php if($user->can(['admin','edit'],false)): ?>

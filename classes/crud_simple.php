@@ -115,8 +115,9 @@ class Columns {
             case 'float':
             case 'int':
                 return 'n';break;
-            case 'varchar':
             case 'text':
+                return 't';break;
+            case 'varchar':
             default:
                 return 's';break;
         }
@@ -130,19 +131,22 @@ class Columns {
         $cols=[];
         //pa($lc,true);
         foreach($lc as $i) {
-            $col=['header'=>$i,'type'=>'s'];
+            $col=[];
             $c=$db->getColInfo($i);
-            if($noprimary) if($c['Key']=='PRI') continue;
             if(!empty($c)) {
+                if($noprimary) if($c['Key']=='PRI') continue;
                 $col=array_merge($col,$c);
                 $col['type']=self::sqltype2code($c['Type']);
             }
-            if(!empty($columns[$i])) {
-                $col=array_merge($col,$columns[$i]);
-            } else {
-                $columns[$i]=$col;
-                $update=true;
-            }
+            if(!empty($columns[$i])) $col=array_merge($col,$columns[$i]);
+            else $update=true;
+            if(empty($col['header'])) $col['header']=$i;
+            if(empty($col['type'])) $col['type']='s';
+            if(!isset($col['errmsg'])) $col['errmsg']='';
+            $col['name']=$i;
+            if(!$update) if($columns[$i]!=$col) $update=true;
+            $columns[$i]=$col;
+            if(!isset($col['req'])) $col['req']='';
             $cols[$i]=$col;
         }
         if($update){
@@ -349,40 +353,57 @@ LEFT JOIN musaOrgs ON musaOrgs.org_id=musaMusic.org_id
     }
     
     static function gen_input($c){
+        //pa($c);
         if(empty($c['value'])) $c['value']=null;
-        $req=($c['Null']=='NO')?"required":"";
-        $dis=($c['Key']=='PRI')?"disabled":"";
+        $req="";
+        if(!empty($c['Null'])&&($c['Null']=='NO')) $req="required";
+        if(!empty($c['req'])) $req="required";
+
+        $dis=empty($c['dis'])?"":"disabled";
         $errmsg=(!empty($c['errmsg']))?$c['errmsg']:"";
-        $t=explode("(",$c['Type']);
+        $t=$c['type'];
         $r="<div class='form-group'><label>$c[header]</label>";
-        switch($t[0]){
-            case 'text':
+        switch($t){
+            case 't':
                 $lines = substr_count($c['value'], "\n") + 1;
                 //$lines=4;
-                $r.="<textarea name='$c[Field]' class='form-control' rows='$lines'>$c[value]</textarea>";
+                $r.="<textarea name='$c[name]' class='form-control' rows='$lines'>$c[value]</textarea>";
                 break;
-            case 'float':
-            case 'int':
-                $r.="<input type='number' name='$c[Field]' class='form-control' value='$c[value]' $req $dis>";
+            case 'n':
+                $r.="<input type='number' name='$c[name]' class='form-control' value='$c[value]' $req $dis>";
                 break;
-            case 'varchar':
+            case 's':
             default:
-                $r.="<input type='text' name='$c[Field]' class='form-control' value='$c[value]' $req $dis>";
+                $r.="<input type='text' name='$c[name]' class='form-control' value='$c[value]' $req $dis>";
                 break;
         }
         $r.="<span class='form-text'>$errmsg</span></div>";
         return $r;
     }
     
+    function view_form($cols){
+        $r="<h2>".__CLASS__."</h2>";
+        foreach($cols as $c) $r.=Crud::gen_input($c);
+        return $r;
+    }
+
+    function cols_form($load=false){
+        $cols=Columns::edit($this->cols_edit);
+        if($load){
+            $key=["$this->table_key"=>$_REQUEST['id']];
+            $rec=$this->db->getUnique($this->table_name,$key);
+            // get form values
+            foreach($cols as $i=>$c) $cols[$i]['value']=(!empty($_REQUEST[$i]))?trim($_REQUEST[$i]):$rec[$i];
+        }
+        return $cols;
+    }
 
     function create(){
         $this->init();
-        $cols=Columns::edit($this->cols_edit);
+        $cols=$this->cols_form();
         
-        $r="<h2></h2>
-        <form action='' method='post'  class='needs-validation' novalidate>
-        ";
-        foreach($cols as $c) $r.=Crud::gen_input($c);
+        $r="<form action='' method='post'  class='needs-validation' novalidate>";
+        $r.=$this->view_form($cols);
         $r.="<input type='hidden' name='table_key' value='$this->table_key'/>";
         $r.="<button type='submit' name='bt_save' class='btn btn-success'><i class='fa fa-edit'></i> Spara</button>";
         $r.="&nbsp;<a href='?$this->page_uri' class='btn btn-secondary fcommon' title='Avbryt'><i class='fa fa-undo'></i> Avbryt</a>
@@ -390,7 +411,7 @@ LEFT JOIN musaOrgs ON musaOrgs.org_id=musaMusic.org_id
         return $this->html=$r;
     }
     function insert(){
-        foreach($this->cols_edit as $i) $rec[$i]=(!empty($_REQUEST[$i]))?trim($_REQUEST[$i]):null;
+        foreach($this->cols_form() as $i) $rec[$i]=(!empty($_REQUEST[$i]))?trim($_REQUEST[$i]):null;
         $this->db->insert($this->table_name,$rec);
         setMessage('Skapad');
         header("location: ?$this->page_uri");
@@ -403,19 +424,13 @@ LEFT JOIN musaOrgs ON musaOrgs.org_id=musaMusic.org_id
         $this->init();
         $key=["$this->table_key"=>$_REQUEST['id']];
         $rec=$this->db->getUnique($this->table_name,$key);
-        //$this->cols_edit=array_keys($rec);
-        //pa($this->cols_edit);
-        $cols=Columns::edit($this->cols_edit);
-        //pa($cols);
+        $cols=$this->cols_form(true);
 
         // get form values
         foreach($cols as $i=>$c) $cols[$i]['value']=(!empty($_REQUEST[$i]))?trim($_REQUEST[$i]):$rec[$i];
         
-        $r="<h2></h2>
-        <form action='' method='post'  class='needs-validation' novalidate>
-        ";
-
-        foreach($cols as $c) $r.=Crud::gen_input($c);
+        $r="<form action='' method='post'  class='needs-validation' novalidate>";
+        $r.=$this->view_form($cols);
         $r.="<input type='hidden' name='key' value='".json_encode($key)."'/>";
         $r.="<input type='hidden' name='id' value='$_REQUEST[id]'/>";
         $r.="<input type='hidden' name='table_key' value='$this->table_key'/>";
@@ -429,7 +444,7 @@ LEFT JOIN musaOrgs ON musaOrgs.org_id=musaMusic.org_id
         //pa($_POST);
         $key=["$this->table_key"=>$_REQUEST['id']];
         // get form values
-        foreach($this->cols_edit as $i) $rec[$i]=(!empty($_REQUEST[$i]))?trim($_REQUEST[$i]):null;
+        foreach($this->cols_form() as $i) $rec[$i]=(!empty($_REQUEST[$i]))?trim($_REQUEST[$i]):null;
         $this->db->update($this->table_name,$rec,$key);
         setMessage('Uppdaterad');
         header("location: ?$this->page_uri");
@@ -460,3 +475,81 @@ LEFT JOIN musaOrgs ON musaOrgs.org_id=musaMusic.org_id
     }
 }
 
+class MusicCrud extends Crud {
+    function __construct($title,$org_id,$id=""){
+        Crud::__construct($title,$org_id,$id);
+    }
+
+    function p2f($p){
+        $o=$this->object->{$p};
+        $c=$this->cols[$p];
+        $r="<label>$c[header]</label>";
+        switch(gettype($o)){
+            case 'object':
+                $cn=get_class($o);
+                //pa($cn);
+                $r.=$o->form($c);
+                break;
+            case 'string':
+            default:
+                $r.="<input type='text' class='form-control' value='$o'  $c[req]>";
+                break;
+        }
+        $r.="<div class='invalid-feedback'>$c[errmsg]</div>\n";
+        //pa($r);
+        return $r;
+    }
+    function view_form($cols=null){
+        $r="";
+        //$r.="<h2>".__CLASS__."</h2>";
+        foreach($this->cols_layout as $h){
+            $r.="<div class='form-row'>";
+            foreach($h as $i=>$c){
+                if(is_numeric($c)) {$w="-$c";$c=$i;} else $w="";
+                $r.="<div class='form-group col-md$w'>".$this->p2f($c)."</div>";
+            }
+            $r.="</div>";
+        }
+        return $r;
+    }
+
+
+    function cols_form($music=null){
+        $this->cols_edit=["title","subtitle","yearOfComp","movements","notes","serial_number","publisher","identifier","storage_id","choirvoice_id","solovoice_id","composers","arrangers","authors","categories","themes","languages","instruments","holidays","solovoices"];
+        $this->cols_layout=[
+            ["title","yearOfComp"=>2],
+            ["subtitle","movements"=>4],
+            ["notes"],
+            ["choirvoice_id","languages"=>4],
+            ["solovoices","instruments"],
+            ["composers","arrangers","authors"],
+            ["categories","holidays","themes"],
+            ["serial_number"=>3,"publisher"],
+            ["identifier","storage_id"],
+        ];
+        $cols=Columns::cols($this->cols_edit);
+        return $this->cols=$cols;
+    }
+    
+
+    function edit(){
+        $this->init();
+        $this->object=new Music($_REQUEST['id']);
+
+        // cols and load form values
+        $this->cols_form();
+        //pa($cols);
+
+        // view
+        $r="<form action='' method='post'  class='needs-validation' novalidate>";
+        $r.=$this->view_form();
+        $key=["$this->table_key"=>$_REQUEST['id']];
+        $r.="<input type='hidden' name='key' value='".json_encode($key)."'/>";
+        $r.="<input type='hidden' name='id' value='$_REQUEST[id]'/>";
+        $r.="<button type='submit' name='bt_update' class='btn btn-success'><i class='fa fa-edit'></i> Uppdatera</button>";
+        $r.="&nbsp;<a href='?$this->page_uri' class='btn btn-secondary fcommon' title='Avbryt'><i class='fa fa-undo'></i> Avbryt</a>
+        </form>";
+        return $this->html=$r;
+    }
+    
+}

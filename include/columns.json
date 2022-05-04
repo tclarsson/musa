@@ -34,76 +34,94 @@
         "Extra": ""
     },
     "title": {
-        "header": "title",
-        "type": "s",
         "Field": "title",
         "Type": "varchar(200)",
         "Null": "YES",
         "Key": "",
         "Default": null,
-        "Extra": ""
+        "Extra": "",
+        "type": "s",
+        "header": "title",
+        "errmsg": "",
+        "name": "title"
     },
     "subtitle": {
-        "header": "subtitle",
-        "type": "s",
         "Field": "subtitle",
         "Type": "varchar(100)",
         "Null": "YES",
         "Key": "",
         "Default": null,
-        "Extra": ""
+        "Extra": "",
+        "type": "s",
+        "header": "subtitle",
+        "errmsg": "",
+        "name": "subtitle"
     },
     "yearOfComp": {
-        "header": "yearOfComp",
-        "type": "s",
         "Field": "yearOfComp",
         "Type": "year(4)",
         "Null": "YES",
         "Key": "",
         "Default": null,
-        "Extra": ""
+        "Extra": "",
+        "type": "s",
+        "header": "yearOfComp",
+        "errmsg": "",
+        "name": "yearOfComp"
     },
     "movements": {
-        "header": "movements",
-        "type": "n",
         "Field": "movements",
         "Type": "int(11)",
         "Null": "YES",
         "Key": "",
         "Default": null,
-        "Extra": ""
+        "Extra": "",
+        "type": "n",
+        "header": "movements",
+        "errmsg": "",
+        "name": "movements"
     },
     "notes": {
-        "header": "notes",
-        "type": "s",
         "Field": "notes",
         "Type": "text",
         "Null": "YES",
         "Key": "",
         "Default": null,
-        "Extra": ""
+        "Extra": "",
+        "type": "s",
+        "header": "notes",
+        "errmsg": "",
+        "name": "notes"
     },
     "publisher": {
-        "header": "publisher",
-        "type": "s",
         "Field": "publisher",
         "Type": "varchar(200)",
         "Null": "YES",
         "Key": "",
         "Default": null,
-        "Extra": ""
+        "Extra": "",
+        "type": "s",
+        "header": "publisher",
+        "errmsg": "",
+        "name": "publisher"
     },
     "comp": {
         "header": "comp",
-        "type": "s"
+        "type": "s",
+        "errmsg": "",
+        "name": "comp"
     },
     "arr": {
         "header": "arr",
-        "type": "s"
+        "type": "s",
+        "errmsg": "",
+        "name": "arr"
     },
     "auth": {
         "header": "auth",
-        "type": "s"
+        "type": "s",
+        "errmsg": "",
+        "name": "auth"
     },
     "org_id": {
         "header": "org_id",
@@ -116,34 +134,40 @@
         "Extra": ""
     },
     "choirvoice_id": {
-        "header": "choirvoice_id",
-        "type": "n",
         "Field": "choirvoice_id",
         "Type": "int(11)",
         "Null": "YES",
         "Key": "MUL",
         "Default": null,
-        "Extra": ""
+        "Extra": "",
+        "type": "n",
+        "header": "choirvoice_id",
+        "errmsg": "",
+        "name": "choirvoice_id"
     },
     "serial_number": {
-        "header": "serial_number",
-        "type": "s",
         "Field": "serial_number",
         "Type": "varchar(100)",
         "Null": "YES",
         "Key": "",
         "Default": null,
-        "Extra": ""
+        "Extra": "",
+        "type": "s",
+        "header": "serial_number",
+        "errmsg": "",
+        "name": "serial_number"
     },
     "identifier": {
-        "header": "identifier",
-        "type": "s",
         "Field": "identifier",
         "Type": "varchar(200)",
         "Null": "YES",
         "Key": "",
         "Default": null,
-        "Extra": ""
+        "Extra": "",
+        "type": "s",
+        "header": "identifier",
+        "errmsg": "",
+        "name": "identifier"
     },
     "family_name": {
         "header": "family_name",
@@ -194,5 +218,83 @@
         "Key": "",
         "Default": null,
         "Extra": ""
+    },
+    "composers": {
+        "header": "composers",
+        "type": "s",
+        "errmsg": "",
+        "name": "composers"
+    },
+    "arrangers": {
+        "header": "arrangers",
+        "type": "s",
+        "errmsg": "",
+        "name": "arrangers"
+    },
+    "authors": {
+        "header": "authors",
+        "type": "s",
+        "errmsg": "",
+        "name": "authors"
+    },
+    "categories": {
+        "header": "categories",
+        "type": "s",
+        "errmsg": "",
+        "name": "categories"
+    },
+    "themes": {
+        "header": "themes",
+        "type": "s",
+        "errmsg": "",
+        "name": "themes"
+    },
+    "languages": {
+        "header": "languages",
+        "type": "s",
+        "errmsg": "",
+        "name": "languages"
+    },
+    "instruments": {
+        "header": "instruments",
+        "type": "s",
+        "errmsg": "",
+        "name": "instruments"
+    },
+    "holidays": {
+        "header": "holidays",
+        "type": "s",
+        "errmsg": "",
+        "name": "holidays"
+    },
+    "solovoices": {
+        "header": "solovoices",
+        "type": "s",
+        "errmsg": "",
+        "name": "solovoices"
+    },
+    "storage_id": {
+        "Field": "storage_id",
+        "Type": "int(11)",
+        "Null": "NO",
+        "Key": "PRI",
+        "Default": null,
+        "Extra": "auto_increment",
+        "type": "n",
+        "header": "storage_id",
+        "errmsg": "",
+        "name": "storage_id"
+    },
+    "solovoice_id": {
+        "Field": "solovoice_id",
+        "Type": "int(11)",
+        "Null": "NO",
+        "Key": "PRI",
+        "Default": null,
+        "Extra": "auto_increment",
+        "type": "n",
+        "header": "solovoice_id",
+        "errmsg": "",
+        "name": "solovoice_id"
     }
 }

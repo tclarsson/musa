@@ -25,6 +25,11 @@ trait music_common {
     public function json() {
         return json_encode($this,JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE);
     }
+    public function _cols() {
+        $r=[];
+        foreach($this as $c=>$v) $r[]=$c;
+        return('$cols_edit='.json_encode($r).";");
+    }
     public function mod() {
         $this->object_modified=true;
     }
@@ -150,12 +155,14 @@ trait music_common {
         }
         return false;
     }    
-    public static function list_all(){
+    public static function list_all($cond=null,$field='*',$orderby=null){
         global $db;
-        $r=$db->getAllRecords(self::TABLE_MAIN);
+        if(!empty($cond)) $cond="AND $cond";
+        $r=$db->getAllRecords(self::TABLE_MAIN,$field,$cond,$orderby);
         return $r;
 
     }
+
     public static function music_list($tn,$mid){
         global $db;
         $sql="SELECT ".self::TABLE_KEY." FROM $tn WHERE music_id=$mid";
@@ -167,6 +174,66 @@ trait music_common {
         }
         return null;
     }
+    //-----------------------------------------------------------------
+    //-----------------------------------------------------------------
+    /* called from p2f - single select */
+    function form($c=null){
+        if(empty($c)) return '</br>function form($c=null) not supported by class: '.__CLASS__." Line:".__LINE__;
+        $c['value']=$this->{self::TABLE_KEY};
+        $r=$this->_form_select($c,self::list_select());
+        return $r;
+    }
+    /* called from ObjList  - multiselect */
+    static function listform($c,$lo){
+        $c['value']=[];
+        foreach($lo as $o) $c['value'][]=$o->{self::TABLE_KEY};
+        return self::_form_mselect($c,self::list_select());
+    }
+    //-----------------------------------------------------------------
+    /* used to generate possible select options */
+    static function list_select_field(){
+        return self::TABLE_KEY." as  id,".self::TABLE_LIKE." as text";
+    }
+    static function list_select(){
+        $l=self::list_all(null,self::list_select_field(),'order by text');
+        return $l;
+    }
+
+    //-----------------------------------------------------------------
+    function _form_select($c,$l){
+        if(!empty($l)){
+            $r="<select class='form-control' name='$c[name]'>
+            <option value=''>Välj ett alternativ:</option>";
+            foreach($l as $v) 
+                $r.="<option value='$v[id]' ".($v['id']==$c['value']?"selected":"").">$v[text]</option>";
+            $r.="</select>";
+        } else {
+            $r="<select class='form-control' name='$c[name]' disabled>
+            <option value=''>Det finns inget att välja på</option>";
+            $r.="</select>";
+        }
+        return $r;
+    }
+
+    static function _form_mselect($c,$l){
+        if(!empty($l)){
+            $r=" (Välj ett eller flera alternativ)<select class='form-control' name='$c[name]' multiple>";
+            
+            foreach($l as $v) 
+                $r.="<option value='$v[id]' ".(in_array($v['id'],$c['value'])?"selected":"").">$v[text]</option>";
+            $r.="</select>";
+        } else {
+            $r="<select class='form-control' name='$c[name]' disabled>
+            <option value=''>Det finns inget att välja på</option>";
+            $r.="</select>";
+        }
+        return $r;
+    }
+
+
+
+    //-----------------------------------------------------------------
+    //-----------------------------------------------------------------
 
     private static function _test_std(){
         self::pa("---------------------------------------------------------------------------\n".__CLASS__." class test started.");
@@ -436,12 +503,12 @@ class Theme{
         $this->_params2props($i);
     }
 
+
     public static function _test(){
         self::_test_std();
     }
 
 }
-
 
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
@@ -461,6 +528,14 @@ class Storage{
         self::common_construct();
         $this->_params2props($i);
     }
+
+    /*
+    function form($c){
+        global $user;
+        $cond="org_id=".$user->current_org_id();
+        return $this->_form_select($c,$cond);
+    }
+    */
 
     public static function _test(){
         self::_test_std();
@@ -549,6 +624,11 @@ class Person {
         foreach($lid as $id) $l[]=New self($id);
         return $l;
     }
+    public function get_select_item(){
+        return ['id'=>$this->{self::TABLE_KEY},'text'=>"$this->family_name,$this->first_name ($this->date_born)"];
+    }
+
+    
 
     public static function _test(){
         self::pa("---------------------------------------------------------------------------\n".__CLASS__." class test started.");
@@ -577,10 +657,13 @@ class Person {
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 class ObjList {
+    protected $db;
     protected $class;
     protected $linktable;
 
     function __construct($l,$linktable=null){
+        global $db;
+        $this->db=$db;
         if(!empty($l)){
             if(is_array($l)){
                 $this->class=get_class($l[0]);
@@ -595,26 +678,24 @@ class ObjList {
         }
     }
     function key(){
-        return ${$this->class}::tabkey();
+        return $this->class::tabkey();
     }
     function list(){
         return $this->objects;
     }
     function linkstore($key){
-        global $db;
         foreach($this->objects as $o){
             $rec=$key;
             $rec+=$o->store();
-            $db->insert($this->linktable,$rec);
+            $this->db->insert($this->linktable,$rec);
         }
     }
     function linkload($key){
-        global $db;
-        $sql="SELECT ".$this->key()." FROM $this->linktable WHERE ".array_keys($key)[0]."=".array_valuse($key)[0];
-        pa($sql);
+        $sql="SELECT ".$this->key()." FROM $this->linktable WHERE ".array_keys($key)[0]."=".$key[array_keys($key)[0]];
+        //pa($sql);
         $r=$this->db->getColFrmQry($sql);
         $this->objects=[];
-        if(!empty($r)) foreach($r as $id) $this->objects[]=New ${$this->class}($id);
+        if(!empty($r)) foreach($r as $id) $this->objects[]=New $this->class($id);
         return $this->objects;
     }
 
@@ -626,6 +707,14 @@ class ObjList {
             else throw new Exception("Object must be of class: $this->class", 1);
         }
     }
+
+    /* return html for input form */
+    function form($c){
+        $lo=$this->objects;
+        $r=$this->class::listform($c,$lo);
+        return $r;
+    }
+    
 }
 
 //------------------------------------------------------------------------------------
