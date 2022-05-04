@@ -624,12 +624,26 @@ class Person {
         foreach($lid as $id) $l[]=New self($id);
         return $l;
     }
-    public function get_select_item(){
-        return ['id'=>$this->{self::TABLE_KEY},'text'=>"$this->family_name,$this->first_name ($this->date_born)"];
+
+    static function list_select(){
+        global $db;
+        $sql="
+        SELECT person_id as  id, CONCAT_WS(',',family_name,first_name,musaCountries.country_name,CONCAT('(',date_born,'-','date_dead',')')) as text 
+        FROM musa.musaPersons
+        LEFT JOIN musaCountries ON musaCountries.country_id=musaPersons.country_id
+        ORDER BY text
+        ";
+        $l=$db->getRecFrmQry($sql);
+        return $l;
     }
-
-    
-
+/*
+    static function list_select_field(){
+        $sql=self::TABLE_KEY.
+        " as  id, CONCAT_WS(',',family_name,first_name,CONCAT('(',date_born,'-','date_dead',')')) as text";
+        pa($sql);
+        return $sql;
+    }
+*/
     public static function _test(){
         self::pa("---------------------------------------------------------------------------\n".__CLASS__." class test started.");
         $o=New self(__CLASS__.__CLASS__);self::ass($o->date_born!=1965,$o->json());
