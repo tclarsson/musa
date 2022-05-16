@@ -1,37 +1,19 @@
 {
     "theme_name": {
-        "header": "Tema",
-        "type": "s",
         "Field": "theme_name",
         "Type": "varchar(100)",
         "Null": "NO",
         "Key": "",
         "Default": null,
-        "Extra": ""
+        "Extra": "",
+        "type": "s",
+        "header": "Tema",
+        "errmsg": "",
+        "name": "theme_name"
     },
     "owner": {
-        "header": "\u00c4gare",
+        "header": "owner",
         "type": "s"
-    },
-    "instrument_name": {
-        "header": "Instrument",
-        "type": "s",
-        "Field": "instrument_name",
-        "Type": "varchar(100)",
-        "Null": "NO",
-        "Key": "",
-        "Default": null,
-        "Extra": ""
-    },
-    "music_id": {
-        "header": "music_id",
-        "type": "n",
-        "Field": "music_id",
-        "Type": "int(11)",
-        "Null": "NO",
-        "Key": "MUL",
-        "Default": null,
-        "Extra": ""
     },
     "title": {
         "Field": "title",
@@ -88,62 +70,76 @@
         "Key": "",
         "Default": null,
         "Extra": "",
-        "type": "s",
+        "type": "t",
         "header": "notes",
         "errmsg": "",
         "name": "notes"
     },
-    "publisher": {
-        "Field": "publisher",
+    "org_name": {
+        "Field": "org_name",
         "Type": "varchar(200)",
-        "Null": "YES",
+        "Null": "NO",
         "Key": "",
         "Default": null,
         "Extra": "",
         "type": "s",
-        "header": "publisher",
+        "header": "org_name",
         "errmsg": "",
-        "name": "publisher"
+        "name": "org_name"
     },
-    "comp": {
-        "header": "comp",
-        "type": "s",
-        "errmsg": "",
-        "name": "comp"
-    },
-    "arr": {
-        "header": "arr",
-        "type": "s",
-        "errmsg": "",
-        "name": "arr"
-    },
-    "auth": {
-        "header": "auth",
-        "type": "s",
-        "errmsg": "",
-        "name": "auth"
-    },
-    "org_id": {
-        "header": "org_id",
-        "type": "n",
-        "Field": "org_id",
-        "Type": "int(11)",
+    "choirvoice_name": {
+        "Field": "choirvoice_name",
+        "Type": "varchar(200)",
         "Null": "NO",
-        "Key": "MUL",
-        "Default": null,
-        "Extra": ""
-    },
-    "choirvoice_id": {
-        "Field": "choirvoice_id",
-        "Type": "int(11)",
-        "Null": "YES",
-        "Key": "MUL",
+        "Key": "",
         "Default": null,
         "Extra": "",
-        "type": "n",
-        "header": "choirvoice_id",
+        "type": "s",
+        "header": "choirvoice_name",
         "errmsg": "",
-        "name": "choirvoice_id"
+        "name": "choirvoice_name"
+    },
+    "storage_name": {
+        "Field": "storage_name",
+        "Type": "varchar(200)",
+        "Null": "NO",
+        "Key": "",
+        "Default": null,
+        "Extra": "",
+        "type": "s",
+        "header": "storage_name",
+        "errmsg": "",
+        "name": "storage_name"
+    },
+    "EXTERNAL": {
+        "header": "EXTERNAL",
+        "type": "s",
+        "errmsg": "",
+        "name": "EXTERNAL"
+    },
+    "OWNER": {
+        "header": "OWNER",
+        "type": "s",
+        "errmsg": "",
+        "name": "OWNER"
+    },
+    "COMPOSER": {
+        "header": "COMPOSER",
+        "type": "s",
+        "errmsg": "",
+        "name": "COMPOSER"
+    },
+    "ARRANGER": {
+        "header": "ARRANGER",
+        "type": "s",
+        "errmsg": "",
+        "name": "ARRANGER"
+    },
+    "AUTHOR": {
+        "header": "AUTHOR",
+        "type": "s",
+        "errmsg": "",
+        "name": "AUTHOR"
     },
     "serial_number": {
         "Field": "serial_number",
@@ -157,6 +153,18 @@
         "errmsg": "",
         "name": "serial_number"
     },
+    "publisher": {
+        "Field": "publisher",
+        "Type": "varchar(200)",
+        "Null": "YES",
+        "Key": "",
+        "Default": null,
+        "Extra": "",
+        "type": "s",
+        "header": "publisher",
+        "errmsg": "",
+        "name": "publisher"
+    },
     "identifier": {
         "Field": "identifier",
         "Type": "varchar(200)",
@@ -169,55 +177,29 @@
         "errmsg": "",
         "name": "identifier"
     },
-    "family_name": {
-        "header": "family_name",
-        "type": "s",
-        "Field": "family_name",
-        "Type": "varchar(100)",
+    "storage_id": {
+        "Field": "storage_id",
+        "Type": "int(11)",
         "Null": "NO",
-        "Key": "",
+        "Key": "PRI",
         "Default": null,
-        "Extra": ""
+        "Extra": "auto_increment",
+        "type": "n",
+        "header": "storage_id",
+        "errmsg": "",
+        "name": "storage_id"
     },
-    "first_name": {
-        "header": "first_name",
-        "type": "s",
-        "Field": "first_name",
-        "Type": "varchar(100)",
+    "choirvoice_id": {
+        "Field": "choirvoice_id",
+        "Type": "int(11)",
         "Null": "YES",
-        "Key": "",
+        "Key": "MUL",
         "Default": null,
-        "Extra": ""
-    },
-    "date_born": {
-        "header": "date_born",
-        "type": "s",
-        "Field": "date_born",
-        "Type": "year(4)",
-        "Null": "YES",
-        "Key": "",
-        "Default": null,
-        "Extra": ""
-    },
-    "date_dead": {
-        "header": "date_dead",
-        "type": "s",
-        "Field": "date_dead",
-        "Type": "year(4)",
-        "Null": "YES",
-        "Key": "",
-        "Default": null,
-        "Extra": ""
-    },
-    "category_name": {
-        "header": "category_name",
-        "type": "s",
-        "Field": "category_name",
-        "Type": "varchar(100)",
-        "Null": "NO",
-        "Key": "",
-        "Default": null,
-        "Extra": ""
+        "Extra": "",
+        "type": "n",
+        "header": "choirvoice_id",
+        "errmsg": "",
+        "name": "choirvoice_id"
     },
     "composers": {
         "header": "composers",
@@ -273,28 +255,208 @@
         "errmsg": "",
         "name": "solovoices"
     },
-    "storage_id": {
-        "Field": "storage_id",
+    "copies": {
+        "Field": "copies",
         "Type": "int(11)",
-        "Null": "NO",
-        "Key": "PRI",
+        "Null": "YES",
+        "Key": "",
         "Default": null,
-        "Extra": "auto_increment",
+        "Extra": "",
         "type": "n",
-        "header": "storage_id",
+        "header": "copies",
         "errmsg": "",
-        "name": "storage_id"
+        "name": "copies"
     },
-    "solovoice_id": {
-        "Field": "solovoice_id",
+    "family_name": {
+        "Field": "family_name",
+        "Type": "varchar(100)",
+        "Null": "NO",
+        "Key": "",
+        "Default": null,
+        "Extra": "",
+        "type": "s",
+        "header": "family_name",
+        "errmsg": "",
+        "name": "family_name"
+    },
+    "first_name": {
+        "Field": "first_name",
+        "Type": "varchar(100)",
+        "Null": "YES",
+        "Key": "",
+        "Default": null,
+        "Extra": "",
+        "type": "s",
+        "header": "first_name",
+        "errmsg": "",
+        "name": "first_name"
+    },
+    "date_born": {
+        "Field": "date_born",
+        "Type": "int(11)",
+        "Null": "YES",
+        "Key": "",
+        "Default": null,
+        "Extra": "",
+        "type": "n",
+        "header": "date_born",
+        "errmsg": "",
+        "name": "date_born"
+    },
+    "date_dead": {
+        "Field": "date_dead",
+        "Type": "int(11)",
+        "Null": "YES",
+        "Key": "",
+        "Default": null,
+        "Extra": "",
+        "type": "n",
+        "header": "date_dead",
+        "errmsg": "",
+        "name": "date_dead"
+    },
+    "gender_id": {
+        "Field": "gender_id",
+        "Type": "varchar(45)",
+        "Null": "YES",
+        "Key": "MUL",
+        "Default": null,
+        "Extra": "",
+        "type": "s",
+        "header": "gender_id",
+        "errmsg": "",
+        "name": "gender_id"
+    },
+    "gender_name": {
+        "Field": "gender_name",
+        "Type": "varchar(45)",
+        "Null": "NO",
+        "Key": "",
+        "Default": null,
+        "Extra": "",
+        "type": "s",
+        "header": "gender_name",
+        "errmsg": "",
+        "name": "gender_name"
+    },
+    "country_name": {
+        "Field": "country_name",
+        "Type": "varchar(100)",
+        "Null": "NO",
+        "Key": "",
+        "Default": null,
+        "Extra": "",
+        "type": "s",
+        "header": "country_name",
+        "errmsg": "",
+        "name": "country_name"
+    },
+    "person_id_owner": {
+        "Field": "person_id_owner",
+        "Type": "int(11)",
+        "Null": "YES",
+        "Key": "MUL",
+        "Default": null,
+        "Extra": "",
+        "type": "n",
+        "header": "person_id_owner",
+        "errmsg": "",
+        "name": "person_id_owner"
+    },
+    "category_name": {
+        "Field": "category_name",
+        "Type": "varchar(100)",
+        "Null": "NO",
+        "Key": "",
+        "Default": null,
+        "Extra": "",
+        "type": "s",
+        "header": "category_name",
+        "errmsg": "",
+        "name": "category_name"
+    },
+    "instrument_name": {
+        "Field": "instrument_name",
+        "Type": "varchar(100)",
+        "Null": "NO",
+        "Key": "",
+        "Default": null,
+        "Extra": "",
+        "type": "s",
+        "header": "instrument_name",
+        "errmsg": "",
+        "name": "instrument_name"
+    },
+    "holiday_name": {
+        "Field": "holiday_name",
+        "Type": "varchar(100)",
+        "Null": "NO",
+        "Key": "",
+        "Default": null,
+        "Extra": "",
+        "type": "s",
+        "header": "holiday_name",
+        "errmsg": "",
+        "name": "holiday_name"
+    },
+    "language_name": {
+        "Field": "language_name",
+        "Type": "varchar(100)",
+        "Null": "NO",
+        "Key": "",
+        "Default": null,
+        "Extra": "",
+        "type": "s",
+        "header": "language_name",
+        "errmsg": "",
+        "name": "language_name"
+    },
+    "musaInstrumentsinstrument_id": {
+        "header": "musaInstrumentsinstrument_id",
+        "type": "s",
+        "errmsg": "",
+        "name": "musaInstrumentsinstrument_id"
+    },
+    "instrument_id": {
+        "Field": "instrument_id",
+        "Type": "int(11)",
+        "Null": "NO",
+        "Key": "MUL",
+        "Default": null,
+        "Extra": "",
+        "type": "n",
+        "header": "instrument_id",
+        "errmsg": "",
+        "name": "instrument_id"
+    },
+    "category_id": {
+        "Field": "category_id",
+        "Type": "int(11)",
+        "Null": "NO",
+        "Key": "MUL",
+        "Default": null,
+        "Extra": "",
+        "type": "n",
+        "header": "category_id",
+        "errmsg": "",
+        "name": "category_id"
+    },
+    "person_id": {
+        "Field": "person_id",
         "Type": "int(11)",
         "Null": "NO",
         "Key": "PRI",
         "Default": null,
         "Extra": "auto_increment",
         "type": "n",
-        "header": "solovoice_id",
+        "header": "person_id",
         "errmsg": "",
-        "name": "solovoice_id"
+        "name": "person_id"
+    },
+    "HOLIDAYS": {
+        "header": "HOLIDAYS",
+        "type": "s",
+        "errmsg": "",
+        "name": "HOLIDAYS"
     }
 }

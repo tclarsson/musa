@@ -1,4 +1,3 @@
-<div id="dynamicModalFrame"></div>
 <hr>
 <?php 
 print('<button onclick="goBack()" class="btn btn-secondary" title="Tillbaka"><i class="fa fa-undo"></i> Tillbaka</button></br>');
@@ -20,6 +19,4 @@ $ld="";
 if(!empty($user_data)) $ld.=v($user_data['given_name'])." ".v($user_data['family_name']);
 dolog($ld);
 
-
-require_once 'infomodal.php';
 ?>

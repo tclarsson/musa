@@ -8,20 +8,11 @@ $user->admit([]);
 // ------------------------------------------------------
 // 
     // list of supported classes
-    $list_classes=[
-        'person'=>['Theme','Tema','Themes','theme_name','theme_id'],
-        'category'=>['Theme','Tema','Themes','theme_name','theme_id'],
-        'theme'=>['Theme','Tema','Themes','theme_name','theme_id'],
-        'language'=>['Theme','Tema','Themes','theme_name','theme_id'],
-        'instrument'=>['Theme','Tema','Themes','theme_name','theme_id'],
-        'holiday'=>['Theme','Tema','Themes','theme_name','theme_id'],
-        'solovoice'=>['Theme','Tema','Themes','theme_name','theme_id']
-    ];
-    if(isset($_REQUEST['list'])&&!empty($list_classes[$_REQUEST['list']])) {
+    $list_classes=['person','category','theme','language','instrument','holiday','solovoice'];
+    if(isset($_REQUEST['list'])&&in_array($_REQUEST['list'],$list_classes)) {
         $cn=ucfirst(strtolower($_REQUEST['list']));
         $ci=$cn::classinfo();
         $crud=New Crud($ci['CLASS_TITLE'],$user->current_org_id());
-        //$crud->set_singleprop('Themes',"theme_name",'theme_id');
         $crud->base_on_class($cn);
         // ------------------------------------------------------
         $card=New Card("Administrera {$crud->page_title}");
@@ -51,7 +42,7 @@ $user->admit([]);
         <li>Lägga till, editera och ta bort list-element</li>
         </ul>";
         $card->body="<h4>Välj lista att administrera:</h4><ul>";
-        foreach($list_classes as $class=>$c){
+        foreach($list_classes as $class){
             $cn=ucfirst(strtolower($class));
             $ci=$cn::classinfo();
             //pa($ci);

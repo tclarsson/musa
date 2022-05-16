@@ -73,7 +73,11 @@ if($user->isLoggedIn()): ?>
     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
     <a class="dropdown-item" href="<?php print(ROOT_URI);?>music_list_admin.php">Hantera Listor</a>
     <div class="dropdown-divider"></div>
-    <a class="dropdown-item" href="<?php print(ROOT_URI);?>user_invite.php">Bjud in ny användare</a>
+    <a class="dropdown-item" href="<?php print(ROOT_URI);?>music_import.php">Importera från fil</a>
+    <a class="dropdown-item" href="<?php print(ROOT_URI);?>music_export.php">Exportera till fil</a>
+    <div class="dropdown-divider"></div>
+    <a class="dropdown-item" href="<?php print(ROOT_URI);?>music_delete.php">Radera information</a>
+
     </div>
   </li>
 <?php endif?>
@@ -125,6 +129,7 @@ if($user->isLoggedIn()): ?>
         print('<a class="dropdown-item" href="'.ROOT_URI.'system_log.php">Log</a>');
         print('<a class="dropdown-item" href="https://analytics.google.com/analytics/web/?authuser=0#/report/trafficsources-overview/a177007171/">Google Analytics</a>');
         print("<a class='dropdown-item' href='add_music.php'>Lägg till testdata</a>");
+        print("<a class='dropdown-item' href='db_info.php'>Databas info</a>");
      ?>
       <div class="dropdown-divider"></div>
       <a class="dropdown-item" href="<?php print(ROOT_URI);?>maintenance_cron.php">Kör Underhåll</a>

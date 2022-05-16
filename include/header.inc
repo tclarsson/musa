@@ -59,13 +59,12 @@ form.classList.add('was-validated');
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/all.css">
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/v4-shims.css">
 
-<!-- Favicons -->
+<!-- Favicons https://favicon.io/emoji-favicons/musical-note -->
 <link rel="apple-touch-icon" sizes="180x180" href="<?php print(ROOT_URI);?>favicon/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="<?php print(ROOT_URI);?>favicon/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="<?php print(ROOT_URI);?>favicon/favicon-16x16.png">
 <link rel="manifest" href="<?php print(ROOT_URI);?>favicon/site.webmanifest">
 
-<!-- ATK -->
-<link rel="stylesheet" href="<?php print(ROOT_URI."css/atk.css");?>">
-<script src="<?php print(ROOT_URI."js/atk.js");?>"></script>
+<link rel="stylesheet" href="<?php print(ROOT_URI."css/common.css");?>">
+<script src="<?php print(ROOT_URI."js/common.js");?>"></script>
 

@@ -50,9 +50,13 @@ class Table {
 
     function table(){
         $search = "";
+        // only show own?
+        if(!empty($this->own)) $search .= $this->own;
+
         if(!empty($this->search)) {
-            $search = "\nAND CONCAT_WS('#',".implode(",", $this->cols_searchable).") LIKE '%$this->search%'";
+            $search .= "\nAND CONCAT_WS('#',".implode(",", $this->cols_searchable).") LIKE '%$this->search%'";
         }
+       
 
         // calculate num rows & pages
         $sql = "SELECT COUNT(*) as 'numrows'\n$this->sql_body\n$this->sql_where $search $this->sql_group";

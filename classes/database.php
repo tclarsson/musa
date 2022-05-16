@@ -215,8 +215,8 @@ class Database{
     public function getRecFrmQry($query)
     {
         //echo $query;
-        $stmt = $this->pdo->prepare($query);
         //print("</br>");print_r($query);
+        $stmt = $this->pdo->prepare($query);
         $stmt->execute();
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $rows;
