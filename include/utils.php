@@ -818,7 +818,7 @@ function pa($a,$callstack=false){
     print('<pre>');
     print_r($a);
     if($callstack) foreach (debug_backtrace() as $v) {
-        print("Line $v[line] in ".basename($v['file'])." calls $v[function]\n");
+        print("\nLine $v[line] in ".basename($v['file'])." calls $v[function]");
     }
     //print_r(debug_backtrace());
     print('</pre>');

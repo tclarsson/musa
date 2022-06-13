@@ -458,5 +458,143 @@
         "type": "s",
         "errmsg": "",
         "name": "HOLIDAYS"
+    },
+    "storage": {
+        "header": "storage",
+        "type": "s",
+        "errmsg": "",
+        "name": "storage"
+    },
+    "choirvoice": {
+        "header": "choirvoice",
+        "type": "s",
+        "errmsg": "",
+        "name": "choirvoice"
+    },
+    "music_id_owner": {
+        "Field": "music_id_owner",
+        "Type": "int(11)",
+        "Null": "NO",
+        "Key": "MUL",
+        "Default": null,
+        "Extra": "",
+        "type": "n",
+        "header": "music_id_owner",
+        "errmsg": "",
+        "name": "music_id_owner"
+    },
+    "music_id": {
+        "Field": "music_id",
+        "Type": "int(11)",
+        "Null": "NO",
+        "Key": "MUL",
+        "Default": null,
+        "Extra": "",
+        "type": "n",
+        "header": "music_id",
+        "errmsg": "",
+        "name": "music_id"
+    },
+    "g_category_name": {
+        "header": "g_category_name",
+        "type": "s",
+        "errmsg": "",
+        "name": "g_category_name"
+    },
+    "g_theme_name": {
+        "header": "g_theme_name",
+        "type": "s",
+        "errmsg": "",
+        "name": "g_theme_name"
+    },
+    "g_language_name": {
+        "header": "g_language_name",
+        "type": "s",
+        "errmsg": "",
+        "name": "g_language_name"
+    },
+    "g_instrument_name": {
+        "header": "g_instrument_name",
+        "type": "s",
+        "errmsg": "",
+        "name": "g_instrument_name"
+    },
+    "g_holiday_name": {
+        "header": "g_holiday_name",
+        "type": "s",
+        "errmsg": "",
+        "name": "g_holiday_name"
+    },
+    "g_solovoice_name": {
+        "header": "g_solovoice_name",
+        "type": "s",
+        "errmsg": "",
+        "name": "g_solovoice_name"
+    },
+    "theme_id": {
+        "Field": "theme_id",
+        "Type": "int(11)",
+        "Null": "NO",
+        "Key": "PRI",
+        "Default": null,
+        "Extra": "auto_increment",
+        "type": "n",
+        "header": "theme_id",
+        "errmsg": "",
+        "name": "theme_id"
+    },
+    "g_composer": {
+        "header": "g_composer",
+        "type": "s",
+        "errmsg": "",
+        "name": "g_composer"
+    },
+    "g_arranger": {
+        "header": "g_arranger",
+        "type": "s",
+        "errmsg": "",
+        "name": "g_arranger"
+    },
+    "g_author": {
+        "header": "g_author",
+        "type": "s",
+        "errmsg": "",
+        "name": "g_author"
+    },
+    "gender": {
+        "header": "gender",
+        "type": "s",
+        "errmsg": "",
+        "name": "gender"
+    },
+    "country": {
+        "header": "country",
+        "type": "s",
+        "errmsg": "",
+        "name": "country"
+    },
+    "country_id": {
+        "Field": "country_id",
+        "Type": "int(11)",
+        "Null": "YES",
+        "Key": "MUL",
+        "Default": null,
+        "Extra": "",
+        "type": "n",
+        "header": "country_id",
+        "errmsg": "",
+        "name": "country_id"
+    },
+    "solovoice_name": {
+        "Field": "solovoice_name",
+        "Type": "varchar(45)",
+        "Null": "NO",
+        "Key": "",
+        "Default": null,
+        "Extra": "",
+        "type": "s",
+        "header": "solovoice_name",
+        "errmsg": "",
+        "name": "solovoice_name"
     }
 }

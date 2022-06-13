@@ -274,12 +274,14 @@ class Crud {
 
     public $sql_select="*";
 
-    function __construct($title,$org_id,$classname=null){
+    function __construct($title,$classname){
         global $db;
+        global $user;
         $this->db=$db;
         $this->page_title=$title;
-        $this->org_id=$org_id;
-        if(!empty($classname)) $this->base_on_class($classname);
+        $this->org_id=$user->current_org_id();
+        $this->classname=$classname;
+        $this->_init_from_class();
     }
 
     function sql_prefix(){
@@ -289,144 +291,64 @@ class Crud {
         ,{$this->table_name}.{$this->table_key}
         ";
     }
-    function base_on_class($classname){
-        $this->classname=$classname;
+    function _init_from_class(){
+        if(empty($this->classname)) return;
+        $classname=$this->classname;
         $ci=$classname::classinfo();
-        $this->table_list=str_replace("musa","musaMusic",$ci['TABLE_MAIN']);
+        //$this->table_list=str_replace("musa","musaMusic",$ci['TABLE_MAIN']);
         $this->table_name=$ci['TABLE_MAIN'];
         $this->table_key=$ci['TABLE_KEY'];
         $this->table_props=$ci['TABLE_PROPS'];
-        $this->sql_body=$this->sql_prefix()."
+        $this->cols_edit=$this->table_props;
+
+        switch($classname){
+            case 'Person':
+                //$this->cols_edit=[];
+                break;
+        }
+    }
+
+    function _table_init(){
+        $this->table->sql_body=$this->sql_prefix()."
         FROM {$this->table_name} 
         LEFT JOIN musaOrgs ON musaOrgs.org_id={$this->table_name}.{$this->table_key}_owner
         ";
-        /*
-        LEFT JOIN {$this->table_list} ON {$this->table_list}.{$this->table_key}={$this->table_name}.{$this->table_key}
-        LEFT JOIN musaMusic ON musaMusic.music_id={$this->table_list}.music_id
+        $this->table->sql_group="";
+        $this->table->cols_visible=array_merge($this->table_props,[]);
+        $this->table->cols_searchable=$this->table->cols_visible;
+        $this->table->order = $this->table_props[0];
+        //only own
+        $this->table->own="\nAND $this->table_name.$this->table_key"."_owner=$this->org_id";
+        //external = no limits
+        if(!empty($_GET['ext'])) $this->table->own="";
+        // ------------------------------------------------------
+        $this->table->feature['create']=['button'=>New Button('create')];
 
-        LEFT JOIN musaMusicComposers ON musaMusicComposers.person_id=musaPersons.person_id
-        LEFT JOIN musaMusicArrangers ON musaMusicArrangers.person_id=musaPersons.person_id
-        LEFT JOIN musaMusicAuthors ON musaMusicAuthors.person_id=musaPersons.person_id
-        LEFT JOIN musaMusic ON (musaMusic.music_id=musaMusicArrangers.music_id) OR (musaMusic.music_id=musaMusicComposers.music_id)  OR (musaMusic.music_id=musaMusicAuthors.music_id)
-
-        */
-        $this->sql_group="";
-        $this->cols_visible=array_merge($this->table_props,["OWNER","EXTERNAL",$this->table_key]);
-        $this->cols_searchable=$this->table_props;
-        $this->cols_edit=$this->cols_searchable;
-        $this->order = $this->table_props[0];
+        // ------------------------------------------------------
+        if(empty($this->classname)) return;
+        $classname=$this->classname;
+        $ci=$classname::classinfo();
         switch($classname){
             case 'Person':
-                $this->table_list=['musaMusicComposers','musaMusicArrangers','musaMusicAuthors'];
-                $this->sql_body=$this->sql_prefix()."
+                $this->table->cols_visible=array_diff(array_merge(Person::cols_edit(),[Gender::TABLE_LIKE,Country::TABLE_LIKE]),['country','gender']);
+                $this->table->sql_body=$this->sql_prefix()."
                 FROM {$this->table_name} 
                 LEFT JOIN musaOrgs ON musaOrgs.org_id={$this->table_name}.{$this->table_key}_owner
                 LEFT JOIN musaGenderTypes ON musaGenderTypes.gender_id=musaPersons.gender_id
                 LEFT JOIN musaCountries ON musaCountries.country_id=musaPersons.country_id
                 ";
                 break;
-            }
-        // ------------------------------------------------------
-        $this->feature['create']=['button'=>New Button('create')];
-    }
-    function init(){
-        $this->table=New Table('');
-        $this->table->sql_select=$this->sql_select;
-        $this->table->sql_body=$this->sql_body;
-        $this->table->sql_group=$this->sql_group;
-        if(empty($this->cols_visible)){
-            $this->table->_info();
-            die("missing cols_visible");
         }
-        // get col info
-        if(empty($this->cols)) $this->cols=Columns::cols($this->cols_visible);
-        
-
-        //page
-        $this->table->pageno=(isset($_GET['pageno']))?$_GET['pageno']:1;
-
-        //only own
-        $this->table->own="\nAND $this->table_name.$this->table_key"."_owner=$this->org_id";
-        //external = no limits
-        if(!empty($_GET['ext'])) $this->table->own="";
-
-        //search
-        $this->table->cols_searchable=(!empty($this->cols_searchable))?$this->cols_searchable:$this->cols_visible;
-        $this->table->search=(isset($_REQUEST['search']))?$_REQUEST['search']:"";
-
-        //Column sorting on column name
-        $this->table->order=(isset($_REQUEST['order']))?$_REQUEST['order']:"";
-        if(!in_array($this->table->order, $this->cols_visible)) $this->table->order=$this->cols_visible[0];
-
-        //Column sort order
-        $sortBy = array('asc', 'desc'); 
-        $this->table->sort=(isset($_REQUEST['sort']))?$_REQUEST['sort']:"";
-        if(!in_array($this->table->sort, $sortBy)) $this->table->sort= $sortBy[0];
+        $this->table->cols_searchable=$this->table->cols_visible;
+ 
     }
 
-
-    function header_col($col){
-        $linkopt="";
-        if(!empty($this->table->search)) $linkopt.="&search={$this->table->search}";
-        $so=($this->table->sort=="desc")?"asc":"desc";
-        $si="";
-        if($this->table->order==$col) {
-            $si=($this->table->sort=="desc")?"<i class='fas fa-sort-down'></i>":"<i class='fas fa-sort-up'></i>";
-            }
-        $r="<th><a href=?$this->page_uri&order=$col&sort=$so$linkopt>".$this->cols[$col]['header']." $si</th>";
-        return $r;
-    }
-    function pagination(){
-        $linkopt="";
-        if(!empty($this->table->search)) $linkopt.="&search={$this->table->search}";
-        if(!empty($this->table->order)) $linkopt.="&order={$this->table->order}";
-        if(!empty($this->table->sort)) $linkopt.="&sort={$this->table->sort}";
-
-        $r="";
-        $r.="Sida {$this->table->pageno} av {$this->table->pages}".((!empty($this->table->rows))?" (totalt {$this->table->rows} rader)":"")."<br/>";
-        if($this->table->pages>1) {
-            $r.="<ul class='pagination' align-right>
-            <li class='page-item".(($this->table->pageno <= 1)?" disabled":"")."'>
-            <a class='page-link' href='?$this->page_uri&pageno=1$linkopt' title='Gå till början' data-toggle='tooltip'><i class='fa fa-step-backward'></i></a></li>
-            <li class='page-item".(($this->table->pageno <= 1)?" disabled":"")."'>
-            <a class='page-link' href='?$this->page_uri&pageno=".($this->table->pageno - 1)."$linkopt'><i class='fa fa-backward'></i></a></li>
-            <li class='page-item".(($this->table->pageno >= $this->table->pages)?" disabled":"")."'>
-            <a class='page-link' href='?$this->page_uri&pageno=".($this->table->pageno + 1)."$linkopt'><i class='fa fa-forward'></i></a></li>
-            <li class='page-item".(($this->table->pageno >= $this->table->pages)?" disabled":"")."'>
-            <a class='page-link' href='?$this->page_uri&pageno={$this->table->pages}$linkopt' title='Gå till slutet' data-toggle='tooltip'><i class='fa fa-step-forward'></i></a></li>
-            </ul>";
-        }
-        return $r;
-    }
-
-    function header_table(){
-        $r="";
-        $r.="<form action='' method='get'>
-        <div class='form-row'>
-            <div class='col'><h1>$this->page_title</h1></div>
-            <div class='col-auto'>
-                <input type='text' class='form-control' placeholder='Sök (tryck Enter)' name='search' 
-                value='".((!empty($this->table->search))?htmlspecialchars($this->table->search):"")."'>
-            </div>
-            <div class='col-auto'>
-                ".(isset($_GET['list'])?"<input type='hidden' name='list' value='$_GET[list]'>":"")."
-                <input type='hidden' name='ext' value='0'>
-                <input type='checkbox' name='ext' value='1'".(!empty($_GET['ext'])?"checked":"")."> 
-                <label >Sök externt</label>
-            </div>
-            <div class='col'>
-
-            ";
-        if(!empty($this->feature['create']['button'])) $r.=$this->feature['create']['button']->html();
-        if(!empty($this->feature['export_excel']['button'])) $r.=$this->feature['export_excel']['button']->html();
-        $r.="<a href='?$this->page_uri' class='btn btn-secondary ml-1' title='Återställ Tabell' data-toggle='tooltip'><i class='fa fa-undo'></i></a>
-            </div>
-        </div></form>";
-        return $r;
-    }
 
     function list(){
-        $this->init();
+        $this->table=New Table();
+        $this->table->page_uri=$this->page_uri;
+        $this->_table_init();
+        $this->table->init();
         // do query with pagination limits for display
         $this->table->table();
         $r="";
@@ -436,137 +358,152 @@ class Crud {
         $importmod=New Modal("confirmimport".__LINE__);
         $r.=$importmod->confirm_table_import('?'.$this->page_uri.'&import&id=${o.'.$this->table_key.'}',$this->table->table,$this->table_props[0]);
 
-        $r.=$this->header_table();
+        $r.=$this->table->header_table($this->page_title);
         if($this->table->table){
+            if(count($this->table->cols_visible)>=6) $this->nocontainer=true;
             $r.="<table class='table table-striped table-sm table-bordered border'><thead class='thead-dark'><tr>";
-            foreach ($this->cols_visible as $col) $r.=$this->header_col($col);
+            foreach ($this->table->cols_visible as $col) $r.=$this->table->header_col($col);
             $r.="<th style='width:10em;'>Action</th></tr></thead><tbody>";
             foreach ($this->table->table as $rid=>$i) {
                 $r.="<tr>";
-                foreach ($this->cols_visible as $col) {
-                    $r.="<td>".$i[$col]."</td>";
+                if($i['OWNER']==1) $r.="<a href='?$this->page_uri&edit&id=".$i[$this->table_key]."' title='Redigera post' data-toggle='tooltip'>";
+                foreach ($this->table->cols_visible as $cid=>$col) {
+                    $c=$i[$col];
+                    if($cid==0) if($i['OWNER']==1) $c="<a href='?$this->page_uri&edit&id=".$i[$this->table_key]."' title='Redigera post' data-toggle='tooltip'>$c</a>";
+                    $r.="<td>$c</td>";
                 }
+                if($i['OWNER']==1) $r.="</a>";
                 $r.="<td><span>";
                 if($i['OWNER']==1) $r.="&nbsp; <a href='?$this->page_uri&edit&id=".$i[$this->table_key]."' title='Redigera post' data-toggle='tooltip'><button class='btn-sm btn-primary'><i class='fa fa-edit'></i></button></a>";
                 if($i['OWNER']==0) $r.="&nbsp; <button class='btn-sm btn-success' ".$importmod->trigger($rid)." title='Importera post'><i class='fa fa-copy'></i></button>";
                 if($i['OWNER']==1) $r.="&nbsp; <button class='btn-sm btn-danger' ".$deletemod->trigger($rid)." title='Radera post'><i class='fa fa-trash'></i></button>";
                 $r.="</span></td></tr>";
-                /*
-                $r.="<td>
-                <a href='?$this->page_uri&edit&id=".$i[$this->table_key]."' title='Redigera' data-toggle='tooltip'><i class='fa fa-edit'></i></a>
-                &nbsp| <a href='?$this->page_uri&delete&id=".$i[$this->table_key]."' data-toggle='tooltip' ".confOp('delete')."</a>
-                &nbsp| <span ".$deletemod->trigger($rid)."><i class='fa fa-send'></i></span>
-                </td></tr>";
-                */
             }
             $r.="</tbody></table>";
-            $r.=$this->pagination();
+            $r.=$this->table->pagination();
         } else{
             $r.="<p class='lead'><em>Hittar inget.</em></p>";
         }
 
         return $this->html=$r;
     }
-    
-    static function gen_input($c){
+
+   
+    function prop2inputhtml($p){
+        $o=$this->object->{$p};
+        $c=$this->cols[$p];
+        //pa($p);
         //pa($c);
-        if(empty($c['value'])) $c['value']=null;
-        $req="";
-        if(!empty($c['Null'])&&($c['Null']=='NO')) $req="required";
-        if(!empty($c['req'])) $req="required";
-
-        $dis=empty($c['dis'])?"":"disabled";
-        $errmsg=(!empty($c['errmsg']))?$c['errmsg']:"";
-        $t=$c['type'];
-        $r="<div class='form-group'><label>$c[header]</label>";
-        switch($t){
-            case 't':
-                $lines = substr_count($c['value'], "\n") + 1;
-                //$lines=4;
-                $r.="<textarea name='$c[name]' class='form-control' rows='$lines'>$c[value]</textarea>";
+        $r="<label>$c[header]</label>";
+        switch(gettype($o)){
+            case 'object':
+                $r.=$o->form($c);
                 break;
-            case 'n':
-                $r.="<input type='number' name='$c[name]' class='form-control' value='$c[value]' $req $dis>";
-                break;
-            case 's':
-            default:
-                $r.="<input type='text' name='$c[name]' class='form-control' value='$c[value]' $req $dis>";
-                break;
+            
+            default: switch($c['type']){
+                case 't':
+                    $lines = substr_count($o, "\n") + 1;
+                    //$lines=4;
+                    $r.="<textarea class='form-control' name='$c[name]' rows='$lines'>$o</textarea>";
+                    break;
+                case 'n':
+                    $r.="<input type='number' class='form-control' name='$c[name]' value='$o' $c[req]>";
+                    break;
+                case 's':
+                default:
+                    $r.="<input type='text' class='form-control' name='$c[name]' value='$o' $c[req]>";
+                    break;
+            }
+            break;
         }
-        $r.="<span class='form-text'>$errmsg</span></div>";
-        return $r;
-    }
-    
-    function view_form($cols){
-        $r="<h2>$this->page_title</h2>";
-        foreach($cols as $c) $r.=Crud::gen_input($c);
+        $r.="<div class='invalid-feedback'>$c[errmsg]</div>\n";
+        //pa($r);
         return $r;
     }
 
-    function cols_form($load=false){
-        $cols=Columns::edit($this->cols_edit);
-        if($load){
-            $key=["$this->table_key"=>$_REQUEST['id']];
-            $rec=$this->db->getUnique($this->table_name,$key);
-            // get form values
-            foreach($cols as $i=>$c) $cols[$i]['value']=(!empty($_REQUEST[$i]))?trim($_REQUEST[$i]):$rec[$i];
+    function view_form(){
+        $r="";
+        foreach($this->cols_layout as $h){
+            $r.="<div class='form-row'>";
+            if(!is_array($h)) $h=[$h];
+            foreach($h as $i=>$c){
+                if(is_numeric($c)) {$w="-$c";$c=$i;} else $w="";
+                $r.="<div class='form-group col-md$w'>".$this->prop2inputhtml($c)."</div>";
+            }
+            $r.="</div>";
         }
-        return $cols;
+        return $r;
     }
 
-    function create(){
-        $this->init();
-        $cols=$this->cols_form();
-        
-        $r="<form action='' method='post'  class='needs-validation' novalidate>";
-        $r.=$this->view_form($cols);
-        $r.="<input type='hidden' name='table_key' value='$this->table_key'/>";
-        $r.="<button type='submit' name='bt_save' class='btn btn-success'><i class='fa fa-edit'></i> Skapa</button>";
-        $r.="&nbsp;<a href='?$this->page_uri' class='btn btn-secondary fcommon' title='Avbryt'><i class='fa fa-undo'></i> Avbryt</a>
-        </form>";
-        return $this->html=$r;
-    }
+
+//------------------------------------------------------------------------------
     function insert(){
-        foreach($this->cols_form() as $i=>$ci) $rec[$i]=(!empty($_REQUEST[$i]))?trim($_REQUEST[$i]):null;
-        $this->db->insert($this->table_name,$rec);
+        pa($_POST,true);
+        $this->object=new $this->classname($_POST);
+        // only set and store (new) owner id when creating new item!
+        $this->object->set_owner();
+        //pa($this->object,true);die;
+        $this->object->store();
         setMessage('Skapad');
         header("location: ?$this->page_uri");
         exit;
     }
 
     
+    function create(){
+        // create empty object
+        $this->object=new $this->classname();
+        // cols and form layout
+        $this->cols_edit=$this->classname::cols_edit();
+        $this->cols_layout=$this->cols_edit;
+        $this->cols=Columns::cols($this->cols_edit);
+        $this->page_title="Skapa $this->page_title";
+        //pa($this,true);die;
 
+        // view
+        $r="<form action='' method='post'  class='needs-validation' novalidate>
+        ".$this->view_form()."
+        <button type='submit' name='bt_save' class='btn btn-success'><i class='fa fa-edit'></i> Skapa</button>
+        &nbsp;<a href='?$this->page_uri' class='btn btn-secondary fcommon' title='Avbryt'><i class='fa fa-undo'></i> Avbryt</a>
+        </form>";
+
+        return $this->html=$r;
+    }
+    //------------------------------------------------------------------------------
     function edit(){
-        $this->init();
-        $key=["$this->table_key"=>$_REQUEST['id']];
-        $rec=$this->db->getUnique($this->table_name,$key);
-        $cols=$this->cols_form(true);
+        // create and load object
+        $this->object=new $this->classname($_REQUEST['id']);
 
-        // get form values
-        foreach($cols as $i=>$c) $cols[$i]['value']=(!empty($_REQUEST[$i]))?trim($_REQUEST[$i]):$rec[$i];
+        // cols and form layout
+        $this->cols_edit=$this->classname::cols_edit();
+        $this->cols_layout=$this->cols_edit;
+        $this->cols=Columns::cols($this->cols_edit);
+        $this->page_title="Redigera $this->page_title";
         
-        $r="<form action='' method='post'  class='needs-validation' novalidate>";
-        $r.=$this->view_form($cols);
-        $r.="<input type='hidden' name='key' value='".json_encode($key)."'/>";
-        $r.="<input type='hidden' name='id' value='$_REQUEST[id]'/>";
-        $r.="<input type='hidden' name='table_key' value='$this->table_key'/>";
-        $r.="<button type='submit' name='bt_update' class='btn btn-success'><i class='fa fa-edit'></i> Uppdatera</button>";
-        $r.="&nbsp;<a href='?$this->page_uri' class='btn btn-secondary fcommon' title='Avbryt'><i class='fa fa-undo'></i> Avbryt</a>
+        // view
+        $r="<form action='' method='post'  class='needs-validation' novalidate>
+        ".$this->view_form()."
+        <input type='hidden' name='id' value='$_REQUEST[id]'/>
+        <input type='hidden' name='$this->table_key' value='$_REQUEST[id]'/>
+        <button type='submit' name='bt_update' class='btn btn-success'><i class='fa fa-edit'></i> Uppdatera</button>
+        &nbsp;<a href='?$this->page_uri' class='btn btn-secondary fcommon' title='Avbryt'><i class='fa fa-undo'></i> Avbryt</a>
         </form>";
         return $this->html=$r;
     }
+
     
     function update(){
-        //pa($_POST);
-        $key=["$this->table_key"=>$_REQUEST['id']];
-        // get form values
-        foreach($this->cols_form() as $i=>$c) $rec[$i]=(!empty($_REQUEST[$i]))?trim($_REQUEST[$i]):null;
-        $this->db->update($this->table_name,$rec,$key);
+        pa($_POST,true);
+        $this->object=new $this->classname($_POST);
+        //pa($this->object->json(),true);die;
+        $this->object->store();
+        //pa($this->object->json(),true);die;
         setMessage('Uppdaterad');
         header("location: ?$this->page_uri");
         exit;
     }
 
+    //------------------------------------------------------------------------------
     function import(){
         //pa($_POST);
         $key=["$this->table_key"=>$_REQUEST['id']];
@@ -591,12 +528,14 @@ class Crud {
     }
 
     function controller(){
+        $this->nocontainer=false;
         $this->page_uri=null;
         if(!empty($_GET['list'])) $this->page_uri.="&list=$_GET[list]";
         if(isset($_GET['ext'])) {
             $this->page_uri.="&ext=$_GET[ext]";
             $_SESSION['external_enable']=$_GET['ext']; 
         }
+        //pa($_REQUEST);
 
         if(isset($_POST['bt_update'])) $this->update();
         else if(isset($_POST['bt_save'])) $this->insert();
@@ -608,101 +547,122 @@ class Crud {
         //if(isset($_REQUEST['read']) $this->read();
         //if(isset($_REQUEST['create']) $this->create();
         else $this->list();
+        return $this->nocontainer;
     }
 }
 
 class MusicCrud extends Crud {
-    function __construct($title,$org_id){
-        Crud::__construct($title,$org_id,'Music');
-        $this->sql_body=$this->sql_prefix()."
-        ,GROUP_CONCAT(DISTINCT CONCAT_WS(' ',COMPOSER.first_name,COMPOSER.family_name) SEPARATOR ', ') as COMPOSER
-        ,GROUP_CONCAT(DISTINCT CONCAT_WS(' ',ARRANGER.first_name,ARRANGER.family_name) SEPARATOR ', ') as ARRANGER
-        ,GROUP_CONCAT(DISTINCT CONCAT_WS(' ',AUTHOR.first_name,AUTHOR.family_name) SEPARATOR ', ') as AUTHOR
-        ,GROUP_CONCAT(DISTINCT musaHolidays.holiday_name SEPARATOR ', ') as HOLIDAYS
-        FROM {$this->table_name} 
-        LEFT JOIN musaOrgs ON musaOrgs.org_id=musaMusic.music_id_owner
-        LEFT JOIN musaOrgStatusTypes ON musaOrgStatusTypes.org_status_code=musaOrgs.org_status_code
-        LEFT JOIN musaChoirvoices ON musaChoirvoices.choirvoice_id=musaMusic.choirvoice_id
-        LEFT JOIN musaStorages ON musaStorages.storage_id=musaMusic.storage_id
-        LEFT JOIN musaMusicComposers ON musaMusicComposers.music_id=musaMusic.music_id
-        LEFT JOIN musaPersons COMPOSER ON COMPOSER.person_id=musaMusicComposers.person_id
-        LEFT JOIN musaMusicArrangers ON musaMusicArrangers.music_id=musaMusic.music_id
-        LEFT JOIN musaPersons ARRANGER ON ARRANGER.person_id=musaMusicArrangers.person_id
-        LEFT JOIN musaMusicAuthors ON musaMusicAuthors.music_id=musaMusic.music_id
-        LEFT JOIN musaPersons AUTHOR ON AUTHOR.person_id=musaMusicAuthors.person_id
+    function __construct($title){
+        Crud::__construct($title,'Music');
+    }
+    function _table_init(){
+        //only own
+        $this->table->own="\nAND $this->table_name.$this->table_key"."_owner=$this->org_id";
+        //external = no limits
+        if(!empty($_GET['ext'])) $this->table->own="";
+        $sql="
+CREATE TEMPORARY TABLE mt0
+SELECT musaMusic.*
+,musaChoirvoices.choirvoice_name,musaStorages.storage_name
+,IF(musaMusic.music_id_owner=$this->org_id,1,0) as OWNER
+,IF(musaMusic.music_id_owner=$this->org_id,NULL,org_name) as EXTERNAL
+,GROUP_CONCAT(DISTINCT CONCAT_WS(' ',COMPOSER.first_name,COMPOSER.family_name) SEPARATOR ', ') as g_composer
+,GROUP_CONCAT(DISTINCT CONCAT_WS(' ',ARRANGER.first_name,ARRANGER.family_name) SEPARATOR ', ') as g_arranger
+,GROUP_CONCAT(DISTINCT CONCAT_WS(' ',AUTHOR.first_name,AUTHOR.family_name) SEPARATOR ', ') as g_author
+FROM musaMusic 
+LEFT JOIN musaOrgs ON musaOrgs.org_id=musaMusic.music_id_owner
+LEFT JOIN musaOrgStatusTypes ON musaOrgStatusTypes.org_status_code=musaOrgs.org_status_code
+LEFT JOIN musaChoirvoices ON musaChoirvoices.choirvoice_id=musaMusic.choirvoice_id
+LEFT JOIN musaStorages ON musaStorages.storage_id=musaMusic.storage_id
+LEFT JOIN musaMusicComposers ON musaMusicComposers.music_id=musaMusic.music_id
+LEFT JOIN musaMusicAuthors ON musaMusicAuthors.music_id=musaMusic.music_id
+LEFT JOIN musaMusicArrangers ON musaMusicArrangers.music_id=musaMusic.music_id
+LEFT JOIN musaPersons COMPOSER ON COMPOSER.person_id=musaMusicComposers.person_id
+LEFT JOIN musaPersons AUTHOR ON AUTHOR.person_id=musaMusicAuthors.person_id
+LEFT JOIN musaPersons ARRANGER ON ARRANGER.person_id=musaMusicArrangers.person_id
+WHERE 1 ".$this->table->own."
+GROUP BY musaMusic.music_id;
+";
+        $r=$this->db->executeQry($sql);
+        $sql="
+CREATE TEMPORARY TABLE mt1
+SELECT musaMusic.music_id
+,GROUP_CONCAT(DISTINCT musaCategories.category_name SEPARATOR ', ') as g_category_name
+,GROUP_CONCAT(DISTINCT musaThemes.theme_name SEPARATOR ', ') as g_theme_name
+,GROUP_CONCAT(DISTINCT musaLanguages.language_name SEPARATOR ', ') as g_language_name
+,GROUP_CONCAT(DISTINCT musaInstruments.instrument_name SEPARATOR ', ') as g_instrument_name
+,GROUP_CONCAT(DISTINCT musaHolidays.holiday_name SEPARATOR ', ') as g_holiday_name
+,GROUP_CONCAT(DISTINCT musaSolovoices.solovoice_name SEPARATOR ', ') as g_solovoice_name
+FROM musaMusic 
+LEFT JOIN musaMusicCategories ON musaMusicCategories.music_id=musaMusic.music_id
+LEFT JOIN musaMusicThemes ON musaMusicThemes.music_id=musaMusic.music_id
+LEFT JOIN musaMusicLanguages ON musaMusicLanguages.music_id=musaMusic.music_id
+LEFT JOIN musaMusicInstruments ON musaMusicInstruments.music_id=musaMusic.music_id
+LEFT JOIN musaMusicSolovoices ON musaMusicSolovoices.music_id=musaMusic.music_id
+LEFT JOIN musaCategories ON musaCategories.category_id=musaMusicCategories.category_id
+LEFT JOIN musaThemes ON musaThemes.theme_id=musaMusicThemes.theme_id
+LEFT JOIN musaLanguages ON musaLanguages.language_id=musaMusicLanguages.language_id
+LEFT JOIN musaInstruments ON musaInstruments.instrument_id=musaMusicInstruments.instrument_id
+LEFT JOIN musaMusicHolidays ON musaMusicHolidays.music_id=musaMusic.music_id
+LEFT JOIN musaHolidays ON musaHolidays.holiday_id=musaMusicHolidays.holiday_id
+LEFT JOIN musaSolovoices ON musaSolovoices.solovoice_id=musaMusicSolovoices.solovoice_id
+WHERE 1 ".$this->table->own."
+GROUP BY musaMusic.music_id;
+";
+        $r=$this->db->executeQry($sql);
+        
 
-        LEFT JOIN musaMusicHolidays ON musaMusicHolidays.music_id=musaMusic.music_id
-        LEFT JOIN musaHolidays ON musaHolidays.holiday_id=musaMusicHolidays.holiday_id
+        $this->table->sql_body="
+        FROM mt0 musaMusic
+        LEFT JOIN mt1 ON musaMusic.music_id=mt1.music_id
         ";
-        $this->sql_where="WHERE 1";
-        $this->sql_group="GROUP BY musaMusic.music_id";
-
-
-    }
-
-    function p2f($p){
-        $o=$this->object->{$p};
-        $c=$this->cols[$p];
-        $r="<label>$c[header]</label>";
-        switch(gettype($o)){
-            case 'object':
-                $r.=$o->form($c);
-                break;
-            case 'string':
-            default:
-                $r.="<input type='text' class='form-control' value='$o'  $c[req]>";
-                break;
-        }
-        $r.="<div class='invalid-feedback'>$c[errmsg]</div>\n";
-        //pa($r);
-        return $r;
-    }
-    function view_form($cols=null){
-        $r="";
-        foreach($this->cols_layout as $h){
-            $r.="<div class='form-row'>";
-            foreach($h as $i=>$c){
-                if(is_numeric($c)) {$w="-$c";$c=$i;} else $w="";
-                $r.="<div class='form-group col-md$w'>".$this->p2f($c)."</div>";
-            }
-            $r.="</div>";
-        }
-        return $r;
+        $this->table->sql_group="";
+        $this->table->cols_visible=[
+            "title","subtitle","yearOfComp","movements","copies","notes",
+            "storage_name","choirvoice_name",
+            "g_composer","g_arranger","g_author",
+            "g_category_name","g_theme_name","g_language_name","g_instrument_name","g_holiday_name","g_solovoice_name",
+            "serial_number","publisher","identifier",
+        ];
+        $this->table->cols_searchable=$this->table_props;
+        $this->table->order = $this->table_props[0];
+        // ------------------------------------------------------
+        $this->table->feature['create']=['button'=>New Button('create')];
+        //$this->table->_info();
     }
 
 
-    function cols_form($music=null){
-        $this->cols_edit=["title","subtitle","yearOfComp","movements","copies","notes","serial_number","publisher","identifier","storage_id","choirvoice_id","composers","arrangers","authors","categories","themes","languages","instruments","holidays","solovoices"];
+    
+
+    function edit(){
+        $this->object=new Music($_REQUEST['id']);
+
+        // cols and load form values
+        $this->cols_edit=["title","subtitle","yearOfComp","movements","copies","notes",
+        "serial_number","publisher","identifier","storage","choirvoice",
+        "composers","arrangers","authors","categories","themes","languages","instruments","holidays","solovoices"];
         $this->cols_layout=[
             ["title","yearOfComp"=>2],
             ["subtitle","movements"=>3],
             ["notes"],
-            ["choirvoice_id","languages"=>4],
+            ["choirvoice","languages"=>4],
             ["solovoices","instruments"],
             ["composers","arrangers","authors"],
             ["categories","holidays","themes"],
             ["serial_number"=>3,"publisher"],
-            ["identifier","storage_id","copies"=>3],
+            ["identifier","storage","copies"=>3],
         ];
-        $cols=Columns::cols($this->cols_edit);
-        return $this->cols=$cols;
-    }
-    
-
-    function edit(){
-        $this->init();
-        $this->object=new Music($_REQUEST['id']);
-
-        // cols and load form values
-        $this->cols_form();
-        //pa($cols);
+        $this->cols=Columns::cols($this->cols_edit);
 
         // view
-        $r="<form action='' method='post'  class='needs-validation' novalidate>";
+        $r="<form action='' method='post'  class='needs-validation' novalidate>
+        <button type='submit' name='bt_update' class='btn btn-success'><i class='fa fa-edit'></i> Uppdatera</button>
+        &nbsp;<a href='?$this->page_uri' class='btn btn-secondary fcommon' title='Avbryt'><i class='fa fa-undo'></i> Avbryt</a>";
         $r.=$this->view_form();
         $key=["$this->table_key"=>$_REQUEST['id']];
         $r.="<input type='hidden' name='key' value='".json_encode($key)."'/>";
         $r.="<input type='hidden' name='id' value='$_REQUEST[id]'/>";
+        $r.="<input type='hidden' name='$this->table_key' value='$_REQUEST[id]'/>";
         $r.="<button type='submit' name='bt_update' class='btn btn-success'><i class='fa fa-edit'></i> Uppdatera</button>";
         $r.="&nbsp;<a href='?$this->page_uri' class='btn btn-secondary fcommon' title='Avbryt'><i class='fa fa-undo'></i> Avbryt</a>
         </form>";

@@ -7,9 +7,10 @@ $user->admit();
 //$page_nocontainer=true;
 // check import
 if(isset($_REQUEST['execute'])&&!empty($_REQUEST['table'])){
-    pa($_REQUEST);
+    //pa($_REQUEST);
     foreach($_REQUEST['table'] as $t) {
-        $sql="DELETE FROM musa.musa$t";$db->deleteFrmQry($sql);pa($sql);    
+        $r=$t::delete_unconstrained($user->current_org_id());
+        setMessage("Raderade $r poster från $t");
     }
     //$sql="DELETE FROM musa.musaMusic";$db->deleteFrmQry($sql);pa($sql);
     //$sql="DELETE FROM musa.musaInstruments";$db->deleteFrmQry($sql);pa($sql);
@@ -39,8 +40,16 @@ $cf->body="
 <label class='form-check-label'>Music</label>
 </div>
 <div class='form-check'>
-<input class='form-check-input' type='checkbox' value='Persons' name='table[]'>
+<input class='form-check-input' type='checkbox' value='Person' name='table[]'>
 <label class='form-check-label'>Persons</label>
+</div>
+<div class='form-check'>
+<input class='form-check-input' type='checkbox' value='Composer' name='table[]'>
+<label class='form-check-label'>Composers</label>
+</div>
+<div class='form-check'>
+<input class='form-check-input' type='checkbox' value='Instrument' name='table[]'>
+<label class='form-check-label'>Instrument</label>
 </div>
 </br>
     <div class='row'>

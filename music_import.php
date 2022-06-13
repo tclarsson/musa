@@ -5,28 +5,33 @@ require_once 'crud_simple.php';
 $user->admit();
 
 //$page_nocontainer=true;
+
 // check import
 if(!empty($_REQUEST['type'])&&!empty($_REQUEST['cols'])&&!empty($_REQUEST['data'])){
     //$sql="DELETE FROM musa.musaMusic";$db->deleteFrmQry($sql);pa($sql);
     //$sql="DELETE FROM musa.musaInstruments";$db->deleteFrmQry($sql);pa($sql);
     
     $cols=json_decode($_REQUEST['cols'],true);
+    $num_import=0;
     foreach(json_decode($_REQUEST['data'],true) as $i=>$r){
         $rec=[];
         foreach($cols as $c=>$ci) $rec[$c]=$r[$ci['odx']];
         //print("<p>".json_encode($rec)."</p>");
         switch($_REQUEST['type']){
             case 'music':
-                $o=New Music($rec,$user->current_org_id());
+                $o=New Music($rec);
                 break;
             case 'person':
-                $o=New Person($rec,$user->current_org_id());
+                $o=New Person($rec);
                 break;
         }
+        //pa($o);
+        if($o->is_mod()) $num_import++;
         $o->store();
         //if($i>=50) break;
     }
-    setMessage("Importerat $i poster.");
+    setMessage("Analyserat $i poster.");
+    setMessage("Importerat $num_import poster.");
 }
 
 $cpi=new Card('Import av personer eller musik');
@@ -129,11 +134,15 @@ $(document).ready(function(){
   }
 
   function p_person(v){
+    const l=p_csl(v);
+    const a= l.map(v=>p_usl(v));
+    return a; 
+  }
+  function p_usl(v){
     const p=(v.split('_')); 
     var r={};
     if(p[0]) r.family_name=p[0];
     if(p[1]) r.first_name=p[1];
-    //return JSON.stringify(r); 
     return r; 
   }
   function p_csl(v){
@@ -149,7 +158,7 @@ $(document).ready(function(){
     var html='';
     html+=`<form action='' method='post'>
     <button type='submit' id='submit-file' class='btn btn-success'>Importera</button>
-    <p>Antal rader: ${data.length}</p>
+    <p>Antal lästa rader: ${data.length}</p>
     <table class='table table-striped table-sm table-bordered border'>
     `;
     html+=`<thead class='thead-dark'><tr>`;
@@ -159,6 +168,7 @@ $(document).ready(function(){
     var html_row='';
     var item=[];
     var valid=true;
+    num_rows=0;
     for(i=1;i<data.length;i++){
         html_row='';
         item=[];
@@ -173,10 +183,12 @@ $(document).ready(function(){
         if(valid) {
             res.push(item);
             html+= `<tr>${html_row}</tr>`;
+            num_rows++;
         } else console.log(`Missing required information, dropping record: ${i}`);
         //for(c=0;c<header.length;c++) html+=`<td>${row[c]}</td>`;
     }
     html+= `</table>
+    <p>Antal rader som kommer importeras: ${num_rows}</p>
     <input type='hidden' name='type' value='${type}'>
     <input type='hidden' name='cols' value='${JSON.stringify(cols)}'>
     <input type='hidden' name='data' value='${JSON.stringify(res)}'>
@@ -230,7 +242,7 @@ $(document).ready(function(){
         authors:{parse:p_person,alias:['author']},
         solovoices:{parse:p_csl,alias:['solovoice_name']},
         instruments:{parse:p_csl,alias:['instrument_name']},
-        languages:{alias:['language_name']},
+        languages:{parse:p_csl,alias:['language_name']},
         themes:{parse:p_csl,alias:['theme_name']},
         holidays:{parse:p_csl,alias:['holiday_name']},
         categories:{parse:p_csl,alias:['category','category_name',]},

@@ -8,14 +8,15 @@ $user->admit([]);
 // ------------------------------------------------------
 // 
     // list of supported classes
-    $list_classes=['person','category','theme','language','instrument','holiday','solovoice'];
+    $list_classes=['person','category','theme','language','instrument','holiday','solovoice','choirvoice','storage'];
     if(isset($_REQUEST['list'])&&in_array($_REQUEST['list'],$list_classes)) {
         $cn=ucfirst(strtolower($_REQUEST['list']));
         $ci=$cn::classinfo();
-        $crud=New Crud($ci['CLASS_TITLE'],$user->current_org_id());
-        $crud->base_on_class($cn);
+        $crud=New Crud($ci['CLASS_TITLE'],$cn);
         // ------------------------------------------------------
-        $card=New Card("Administrera {$crud->page_title}");
+        $crud->controller();
+        // ------------------------------------------------------
+        $card=New Card("$crud->page_title");
         $card->helpmodal=New Modal("helppage".__LINE__);
         $card->helpmodal->body="
         <p>Här kan du </p>
