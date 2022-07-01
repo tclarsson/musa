@@ -464,7 +464,7 @@ class Crud {
 
 //------------------------------------------------------------------------------
     function insert(){
-        pa($_POST,true);
+        //pa($_POST,true);
         $this->object=new $this->classname($_POST);
         // only set and store (new) owner id when creating new item!
         $this->object->set_owner();
