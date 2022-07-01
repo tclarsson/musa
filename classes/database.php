@@ -205,6 +205,8 @@ class Database{
     {
         //echo "SELECT  $tableName.$fields FROM $tableName WHERE 1 ".$cond." ".$orderBy." ".$limit;
         //print "<br>SELECT $fields FROM $tableName WHERE 1 ".$cond." ".$orderBy." ".$limit;
+        //$sql="SELECT $fields FROM $tableName WHERE 1 ".$cond." ".$orderBy." ".$limit;
+        //pa($sql);die;
         $stmt = $this->pdo->prepare("SELECT $fields FROM $tableName WHERE 1 ".$cond." ".$orderBy." ".$limit);
         //print "SELECT $fields FROM $tableName WHERE 1 ".$cond." ".$orderBy." " ;
         $stmt->execute();
@@ -288,11 +290,10 @@ class Database{
          $sql="UPDATE $tableName SET ". implode(',', $arrSet).' WHERE '. implode(' AND ', $arrWhere);
          $stmt = $this->pdo->prepare($sql);
         try {
-            //pa($sql);
-            //pa(array_merge($set,$where));
             $stmt->execute(array_merge($set,$where));
             return $stmt->rowCount();
         } catch (\PDOException $e) {
+            self::pa($set);self::pa($where);
             self::pa($sql,true);
             throw new \RuntimeException("[".$e->getCode()."] : ". $e->getMessage());
         }

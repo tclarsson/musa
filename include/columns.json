@@ -46,7 +46,7 @@
         "Key": "",
         "Default": null,
         "Extra": "",
-        "type": "s",
+        "type": "n",
         "header": "yearOfComp",
         "errmsg": "",
         "name": "yearOfComp"

@@ -109,6 +109,8 @@ class Table {
         $r.="<form action='' method='get'>
         <div class='form-row'>
             <div class='col'><h1>$title</h1></div>
+            ";
+        if(empty($this->feature['nosearch'])) $r.="
             <div class='col-auto'>
                 <input type='text' class='form-control' placeholder='Sök (tryck Enter)' name='search' 
                 value='".((!empty($this->search))?htmlspecialchars($this->search):"")."'>
@@ -119,14 +121,15 @@ class Table {
                 <input type='checkbox' name='ext' value='1'".(!empty($_GET['ext'])?"checked":"")."> 
                 <label >Sök externt</label>
             </div>
-            <div class='col'>
-
+            <div class='col-auto'>
+                <a href='?$this->page_uri' class='btn btn-secondary' title='Återställ Tabell' data-toggle='tooltip'><i class='fa fa-undo'></i></a>
+            </div>
             ";
+
+        $r.="<div class='col'>";
         if(!empty($this->feature['create']['button'])) $r.=$this->feature['create']['button']->html();
         if(!empty($this->feature['export_excel']['button'])) $r.=$this->feature['export_excel']['button']->html();
-        $r.="<a href='?$this->page_uri' class='btn btn-secondary ml-1' title='Återställ Tabell' data-toggle='tooltip'><i class='fa fa-undo'></i></a>
-            </div>
-        </div></form>";
+        $r.="</div></div></form>";
         return $r;
     }
 
@@ -136,10 +139,23 @@ class Table {
         // only show own?
         if(!empty($this->own)) $search .= $this->own;
 
+        // simple search - match all texts
         if(!empty($this->search)) {
             $search .= "\nAND CONCAT_WS('#',".implode(",", $this->cols_searchable).") LIKE '%$this->search%'";
         }
-       
+        // advanced search - custom: match individual fields
+        if(!empty($this->asearch)) {
+            $search .= "\n$this->asearch";
+        }
+
+        /*
+        // debug
+        $sql = "SELECT *\n$this->sql_body\n$this->sql_where $this->sql_group";
+        pa($sql);
+        $r=$this->db->getRecFrmQry($sql);
+        pa($r);
+        */
+        
 
         // calculate num rows & pages
         $sql = "SELECT COUNT(*) as 'numrows'\n$this->sql_body\n$this->sql_where $search $this->sql_group";

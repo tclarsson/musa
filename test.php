@@ -1,6 +1,10 @@
 <?php
 require_once 'environment.php';
 require_once 'music.php';
+//Choirvoice::_test();
+Music::_test();
+die("End of test");
+
 //$r=$db->executeQry("DROP TABLE IF EXISTS mt0");
 $sql="CREATE TEMPORARY TABLE mt0
 SELECT musaMusic.*

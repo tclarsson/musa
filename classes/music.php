@@ -9,13 +9,14 @@ trait music_common {
     protected static function pa($a,$callstack=false){
         print('<pre>');
         print_r($a);
+        //var_dump($a);
         if($callstack) foreach (debug_backtrace() as $v) {
             print("Line $v[line] in ".basename($v['file'])." calls $v[function]\n");
         }
         print('</pre>');
     }
 
-    protected static function _debug($a,$callstack=false){
+    static function _debug($a,$callstack=false){
         return;
         self::pa($a,$callstack);
     }
@@ -76,13 +77,22 @@ trait music_common {
         return $this->object_modified;
     }
 
-    // pl('ObjList');
-    protected function proplist($class='all'){
+    // return public properties that are objects of different groups
+    protected function proplist($class='ALL'){
         $a=[];
-        foreach ($this as $p=>$v) if(is_object($v)) {
+        $ppl=self::props_pub();
+        foreach ($this as $p=>$v) if(in_array($p,$ppl)) if(is_object($v)) {
             $c=get_class($v);
-            if(($c=='all')||($c==$class)) $a[]=$p;
+            switch($class){
+                // ALL
+                case 'ALL': $a[]=$p;break;
+                // not ObjList 
+                case 'Objects_no_ObjList': if($c!='ObjList') $a[]=$p;break;
+                // by name
+                default: if($c==$class) $a[]=$p;break;
+            }
         }
+        //pa($a);
         return $a;
     }
   
@@ -134,6 +144,10 @@ trait music_common {
             // load if own key available
             if(!empty($i[self::TABLE_KEY])) {
                 $this->object_modified=$this->load($i[self::TABLE_KEY]);
+                // id is specified and not found 
+                if(empty($this->key())) {
+                    self::_debug("id is specified but not found",true);
+                }
                 self::_debug("set unset: [".self::TABLE_KEY."]=".$i[self::TABLE_KEY]);
                 unset($i[self::TABLE_KEY]);
             }
@@ -168,6 +182,7 @@ trait music_common {
         //self::_debug("set END: ".get_called_class());
         self::_debug($this->json(),true);
         self::_debug("Mod: $this->object_modified\n");
+        return true;
     }
     public static function tabkey(){
         return self::TABLE_KEY;
@@ -192,13 +207,19 @@ trait music_common {
     }
 
     public function store($force=false){
+        $key_update=false;
+        if($force) $this->object_modified=true;
+        self::_debug("store Class: ".get_called_class()."  CLASS:".__CLASS__."---------------------------------------------------------------");
         if(empty($this->{self::TABLE_KEY})) $this->like();
         $rec=[];
-        // store all object properties
-        foreach (self::props_pub() as $p) if(is_object($this->{$p})) {
-            $rec+=$this->{$p}->store();
+        // store all object properties, except ObjList
+        foreach ($this->proplist('Objects_no_ObjList') as $p) {
+            $this->{$p}->store();
+            $rec+=$this->{$p}->key();
         }
-        self::_debug("store Class: ".get_called_class()."  CLASS:".__CLASS__."---------------------------------------------------------------");
+        // update any keys/new inserts
+        if(!empty($rec)) $this->object_modified=true;
+        self::_debug("store/local Class: ".get_called_class()."  CLASS:".__CLASS__."---------------------------------------------------------------");
         self::_debug("Modified: $this->object_modified");
         // store all local properties
         foreach (self::TABLE_PROPS as $p) if(!empty($this->{$p})) $rec[$p]=$this->{$p};
@@ -210,22 +231,28 @@ trait music_common {
                 $p=self::TABLE_KEY."_owner";
                 if(!empty($this->{$p})) $rec[$p]=$this->{$p};
                 try {
-                    $this->db->insert(self::TABLE_MAIN,$rec);
-                    $this->{self::TABLE_KEY}=$this->db->lastInsertId();
+                    $r=$this->db->insert(self::TABLE_MAIN,$rec);
+                    self::_debug("Inserted: $r");
+                    $this->{self::TABLE_KEY}=$this->db->lastInsertId(); // note: returns id as a string!!!
+                    $key_update=true;
                     self::_debug("store/insert Class: ".get_called_class()."  CLASS:".__CLASS__);
                     self::_debug($this->key());
                 } catch (\Throwable $th) {
                     // error in storing - e.g. missing mandatory info
+                    self::_debug($th,true);
                     return [];
                 }
-            } else if($this->object_modified||$force) { 
-                $this->db->update(self::TABLE_MAIN,$rec,[self::TABLE_KEY=>$this->{self::TABLE_KEY}]);
+            } else if($this->object_modified) { 
+                $r=$this->db->update(self::TABLE_MAIN,$rec,[self::TABLE_KEY=>$this->{self::TABLE_KEY}]);
+                self::_debug("Updated: $r");
                 self::_debug("store/update Class: ".get_called_class()."  CLASS:".__CLASS__);
             }
+            // store any ObjList (when id/"reverselink" is available)
+            foreach($this->proplist('ObjList') as $p) $this->{$p}->linkstore($this->key());
         }
         $this->object_modified=false;
         self::_debug("store/end Class: ".get_called_class()."  CLASS:".__CLASS__."---------------------------------------------------------------");
-        return $this->key();
+        if($key_update) return $this->key(); else return [];
     }
 
     public function load($id=null){
@@ -236,10 +263,17 @@ trait music_common {
             $this->{self::TABLE_KEY}=$id;
         }
         if(!empty($this->{self::TABLE_KEY})){
+            // load from database
             $r=$this->db->getUnique(self::TABLE_MAIN,[self::TABLE_KEY=>$this->{self::TABLE_KEY}]);
+            self::_debug($r);
             if(!empty($r)) {
                 unset($r[self::TABLE_KEY]);
                 $this->set($r);
+                // if possible check/set object properties, except ObjList
+                foreach ($this->proplist('Objects_no_ObjList') as $p) $this->{$p}->set($r);
+            } else {
+                // not found -> remove id
+                $this->{self::TABLE_KEY}=null;                
             }
             // load lists pointing to object
             foreach($this->proplist('ObjList') as $p) $this->{$p}->linkload($this->key());
@@ -297,7 +331,7 @@ trait music_common {
     /* called from p2f - single select */
     function form($c=null){
         if(empty($c)) return '</br>function form($c=null) not supported by class: '.__CLASS__." Line:".__LINE__;
-        $c['name']=self::TABLE_KEY;
+        //$c['name']=self::TABLE_KEY;
         $c['value']=$this->{self::TABLE_KEY};
         $r=self::_form_select($c,self::list_select());
         return $r;
@@ -308,19 +342,31 @@ trait music_common {
         foreach($lo as $o) $c['value'][]=$o->{self::TABLE_KEY};
         return self::_form_mselect($c,self::list_select());
     }
+    /* called from prop2inputhtml for search form  - multiselect */
+    static function searchform($c){
+        $c['value']=[];
+        return self::_form_mselect($c,self::list_select());
+    }
     //-----------------------------------------------------------------
     /* used to generate possible select options */
-    static function list_select_field(){
-        return self::TABLE_KEY." as  id,".self::TABLE_LIKE." as text";
+    static function list_select_field($text_as_id=false){
+        if($text_as_id) return self::TABLE_LIKE." as  id,".self::TABLE_LIKE." as text";
+        else return self::TABLE_KEY." as  id,".self::TABLE_LIKE." as text";
     }
+    // list id/text for select statements
+    // list internal first
+    // and then unique? externals 
     static function list_select(){
-        $l=self::list_all(null,self::list_select_field(),'order by text');
-        /*
         global $db;
-        if(!empty($cond)) $cond="AND $cond";
-        $r=$db->getAllRecords(self::TABLE_MAIN,$field,$cond,$orderby);
-        return $r;
-*/
+        global $user;
+        $cu=$user->current_org_id();
+        $cond="AND ".self::TABLE_KEY."_owner=$cu";
+        $r1=$db->getAllRecords(self::TABLE_MAIN,self::list_select_field(),$cond,'order by text');
+        $cond="AND NOT ".self::TABLE_KEY."_owner=$cu";
+        $r2=$db->getAllRecords(self::TABLE_MAIN,self::list_select_field(),$cond,'order by text');
+        $l=[];
+        if(!empty($r1)||!empty($r2)) 
+            $l=array_merge($r1,[['id'=>'','text'=>'-------- externt ---------']],$r2);
         return $l;
     }
 
@@ -409,14 +455,23 @@ trait music_common {
     //-----------------------------------------------------------------
 
     private static function _test_std(){
-        self::pa("---------------------------------------------------------------------------\n".__CLASS__." class test started.");
+        self::pa("====================================================================\n".__CLASS__." class test started.");
+        // empty object
         $o=New self();self::ass($o->{self::TABLE_KEY}==null);self::pa($o->json());
+        // new object with class+class value
         $o=New self(__CLASS__.__CLASS__);self::ass($o->{self::TABLE_KEY}==null);self::pa($o->json());
+        // store object with class+class value
         $o->store();self::ass($o->{self::TABLE_KEY}!=null);self::pa($o->json());
+        // retrieve object with existing id
         $o2=New self($o->{self::TABLE_KEY});self::pa($o2->json());
+        // new object with matching value
         $o3=New self(__CLASS__.__CLASS__);self::ass($o3->{self::TABLE_KEY}!=null);self::pa($o3->json());
-        self::delete($o->{self::TABLE_KEY});
-        self::pa(__CLASS__." class test performed.\n---------------------------------------------------------------------------");
+        // delete object with existing id
+        $id=$o->{self::TABLE_KEY};
+        self::delete($id);
+        // retrieve object with nonexisting id
+        $o2=New self($id);self::ass($o2->{self::TABLE_KEY}==null);self::pa($o2->json());
+        self::pa(__CLASS__." class test performed.\n====================================================================");
     }
 
 
@@ -493,14 +548,14 @@ class Gender{
     public static function _test(){
         //self::_test_std();
 
-        self::pa("---------------------------------------------------------------------------\n".__CLASS__." class test started.");
+        self::pa("================================================================================\n".__CLASS__." class test started.");
         $o=New self();self::pa($o->json());self::ass($o->gender_id==null);self::ass($o->gender_name==null);
         $o=New self('Man');self::pa($o->json());self::ass($o->gender_id=='M');self::ass($o->gender_name=='Man');
         $o=New self('kVinna');self::ass($o->gender_id=='F');self::ass($o->gender_name=='Kvinna');
         self::delete('F');
         $o=New self('kjsdhgfna');self::ass($o->gender_id==null);self::ass($o->gender_name==null);
         $o=New self();self::ass(empty($o->gender_id));self::ass(empty($o->gender_name));
-        self::pa(__CLASS__." class test performed.\n---------------------------------------------------------------------------");
+        self::pa(__CLASS__." class test performed.\n================================================================================");
     }
 
     
@@ -720,6 +775,16 @@ class Storage{
         $this->set($i);
     }
 
+    static function list_select(){
+        global $db;
+        global $user;
+        $cu=$user->current_org_id();
+        $cond="AND ".self::TABLE_KEY."_owner=$cu";
+        $l=$db->getAllRecords(self::TABLE_MAIN,self::list_select_field(),$cond,'order by text');
+        return $l;
+    }
+
+
 
 
     public static function _test(){
@@ -920,18 +985,34 @@ class ObjList {
         return $this->objects;
     }
     function linkstore($key){
+        Music::_debug("linkstore Class: ".$this->class."  CLASS:".__CLASS__);
+        //$rec=[];
+        // clear linked list
+        $this->db->delete($this->linktable,$key);
+        // (re-)create linked list
         foreach($this->objects as $o){
-            $rec=$key;
-            $rec+=$o->store();
-            $this->db->insert($this->linktable,$rec);
+            //$rec=$o->store();
+            // strore object (if new)
+            $o->store();
+            // always get key
+            $rec=$o->key();
+            if(!empty($rec)) {
+                $rec+=$key;
+                Music::_debug($rec);
+                $this->db->insert($this->linktable,$rec);
+            }
         }
     }
     function linkload($key){
-        $sql="SELECT ".$this->key()." FROM $this->linktable WHERE ".array_keys($key)[0]."=".$key[array_keys($key)[0]];
-        //self::_debug($sql);
-        $r=$this->db->getColFrmQry($sql);
+        Music::_debug("linkload Class: ".get_called_class()."  CLASS:".__CLASS__);
         $this->objects=[];
-        if(!empty($r)) foreach($r as $id) $this->objects[]=New $this->class($id);
+        if(!empty($key)) {
+            $sql="SELECT ".$this->key()." FROM $this->linktable WHERE ".array_keys($key)[0]."=".$key[array_keys($key)[0]];
+            Music::_debug($sql);
+            $r=$this->db->getColFrmQry($sql);
+            Music::_debug($r);
+            if(!empty($r)) foreach($r as $id) $this->objects[]=New $this->class($id);
+        }
         return $this->objects;
     }
 
@@ -952,7 +1033,14 @@ class ObjList {
         $r=$this->class::listform($c,$lo);
         return $r;
     }
-    
+    /* return html for search form */
+    function searchform($c){
+        $c['value']=[];
+        $lo=$this->objects;
+        $r=$this->class::listform($c,$lo);
+        return $r;
+        //return self::_form_mselect($c,self::list_select());
+    }
 }
 
 //------------------------------------------------------------------------------------
@@ -1015,7 +1103,7 @@ class Music {
         $this->set($i);
     }
 
-    public function store($force=false){
+    public function _old_store($force=false){
         $rec=[];
         //relations
         $rec+=$this->storage->store($force);
@@ -1053,7 +1141,36 @@ class Music {
     }
 
     public static function _test(){
-        self::pa("---------------------------------------------------------------------------\n".__CLASS__." class test started.");
+        self::pa("====================================================================\n".__CLASS__." class test started.");
+        self::pa("+++++++++++++++++ empty object ++++++++++++++\n");
+        $o=New self();self::ass($o->{self::TABLE_KEY}==null);self::pa($o->json());
+        self::pa("+++++++++++++++++ new object with class+class value ++++++++++++++\n");
+        $o=New self(__CLASS__.__CLASS__);self::ass($o->{self::TABLE_KEY}==null);self::pa($o->json());
+        self::pa("+++++++++++++++++ store object with class+class value ++++++++++++++\n");
+        $o->store();self::ass($o->{self::TABLE_KEY}!=null);self::pa($o->json());
+        $id=$o->{self::TABLE_KEY};
+        self::pa("+++++++++++++++++ update object ++++++++++++++\n");
+        $o->yearOfComp=1965;
+        $o->choirvoice->set("Choirvoice:Time:".time());
+        $o->languages->set(["Svenska","Engelska"]);
+        $o->authors->set(["Alice","Bob"]);
+        //$o->choirvoice=new Choirvoice("Choirvoice:Time:".time());
+        self::pa($o->json());
+        self::pa("+++++++++++++++++ store updated object ++++++++++++++\n");
+        $o->store();self::ass($o->{self::TABLE_KEY}!=null);self::pa($o->json());
+        self::pa("+++++++++++++++++ retrieve object with existing id ++++++++++++++\n");
+        $o2=New self($o->{self::TABLE_KEY});self::pa($o2->json());
+        self::pa("+++++++++++++++++ new object with matching value ++++++++++++++\n");
+        $o3=New self(__CLASS__.__CLASS__);self::ass($o3->{self::TABLE_KEY}!=null);self::pa($o3->json());
+        self::pa("+++++++++++++++++ delete object with existing id ++++++++++++++\n");
+        self::delete($id);
+        self::pa("+++++++++++++++++ retrieve object with nonexisting id ++++++++++++++\n");
+        $o2=New self($id);
+        //self::ass(empty($o2));
+        self::ass($o2->{self::TABLE_KEY}==null);
+        self::pa($o2->json());
+        self::pa(__CLASS__." class test performed.\n====================================================================");
+        die();
         $o=New Music(__CLASS__.__CLASS__);
         $o->music_id_owner=2;
         $o->subtitle="TestSub";
